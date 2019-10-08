@@ -109,9 +109,20 @@ int main()
 				system("clear");
 				std::cout << "6. Robar ficha.\n\n";
 
-				mano.push_back(tablero.stealPiece());
+				if (tablero.isForStoleEmpty())
+				{
+					cout << "No quedan fichas para robar.\n\n";
+				}
 
-				cout << "> Ficha robada.\n\n";
+				else
+				{
+					mano.push_back(tablero.stealPiece());
+
+					cout << "> Ficha robada: |" << mano[mano.size()-1].left << " · " << mano[mano.size()-1].right << "|\n\n";
+
+					cout << "> Quedan " << tablero.getPiecesForStole() << " fichas para robar\n\n";
+				}
+
 
 				std::cout << "--------< PULSE INTRO PARA CONTINUAR >--------\n";
 			

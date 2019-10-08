@@ -55,6 +55,8 @@ public:
 
 	int getPiecesForStole(){return (int) forStole.size();}
 
+	bool isForStoleEmpty(){return (forStole.empty());}
+
 	bool isBoardEmpty(){return (board.empty());}
 
 	void showBoard()
@@ -96,7 +98,7 @@ public:
 				aux.right = j;
 				forStole.push_back(aux);
 
-				std::cout << "|" << aux.left << " · " << aux.right << "|\n";
+				//std::cout << "|" << aux.left << " · " << aux.right << "|\n";
 			}
 		}
 	}

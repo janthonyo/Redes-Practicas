@@ -83,7 +83,7 @@ int main ( )
             bzero(buffer,sizeof(buffer));
             recv(sd,buffer,sizeof(buffer),0);
 
-            printf("\n%s\n",buffer);
+            //printf("\n%s\n",buffer);
 
             if(strcmp(buffer,"Demasiados clientes conectados\n") == 0)
                 fin =1;
@@ -92,13 +92,18 @@ int main ( )
                 fin =1;
 
             //Formatea de forma bonita la fichas
-            //1. Extrae los valores
             numbers_len = 0;
             for (int i = 0; i < strlen(buffer); i++) {
-                if (isdigit(buffer[i])) {
-                    //(- '0' sirve para pasar de char a int el contenido del buffer)
-                    numbers[numbers_len] = (buffer[i]) - '0';
-                    numbers_len++;
+                if (buffer[i]=='|') {
+                    if( isdigit(buffer[i-1]) && isdigit(buffer[i+1]) ){
+                        printf("·");
+                    }
+                    else{
+                        printf("%c", buffer[i]);
+                    }
+                }
+                else{
+                    printf("%c", buffer[i]);
                 }
             }
 

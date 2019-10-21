@@ -12,11 +12,20 @@ struct ficha
 	int right;
 };
 
+struct jugador
+{
+	char user[100];
+	int socket;
+	std::vector <ficha> hand;
+};
+
 class domino
 {
 private:
 	std::vector<ficha> board;
 	std::vector<ficha> forStole; //Monton para robar 
+	jugador player1;
+	jugador player2;
 	int first;
 	int last;
 
@@ -30,6 +39,8 @@ public:
 		last = -1;
 		board.clear();
 		forStole.clear();
+		player1.socket = -1;
+		player2.socket = -1;
 
 		//"Amontonamos" las fichas para repartir y robar.
 		ficha aux;
@@ -48,6 +59,12 @@ public:
 	}
 
 	//Observadores <--------------------------------------------------
+
+	bool has2players(){return ((player1.socket != -1) and (player2.socket != -1));}
+
+	bool hasPlayer1(){return (player1.socket != -1);}
+
+	bool hasPlayer2(){return (player2.socket != -1);}
 
 	int getFirst(){return first;}
 
@@ -79,6 +96,14 @@ public:
 
 
 	//Modificadores <--------------------------------------------------
+
+	void setPlayer1(char name[]){strcpy(player1.user, name);}
+
+	void setPlayer2(char name[]){strcpy(player2.user, name);}
+
+	void setSocket1(int sd){player1.socket = sd;}
+
+	void setSocket2(int sd){player2.socket = sd;}
 
 	void emptyBoard()
 	{
@@ -194,5 +219,7 @@ public:
 		//Si no, se devuelve false (valor inicial de inserted)
 		return inserted;
 	}
+
+
 	
 };

@@ -15,13 +15,13 @@
 int main ( )
 {
 
-    /*----------------------------------------------------
-        Descriptor del socket y buffer de datos
-    -----------------------------------------------------*/
-    int sd;
-    struct sockaddr_in sockname;
-    char buffer[250];
-    socklen_t len_sockname;
+	/*----------------------------------------------------
+		Descriptor del socket y buffer de datos
+	-----------------------------------------------------*/
+	int sd;
+	struct sockaddr_in sockname;
+	char buffer[250];
+	socklen_t len_sockname;
     fd_set readfds, auxfds;
     int salida;
     int fin = 0;
@@ -30,36 +30,37 @@ int main ( )
     int numbers[100];
     int numbers_len = 0;
 
-    /* --------------------------------------------------
-        Se abre el socket
-    ---------------------------------------------------*/
-    sd = socket (AF_INET, SOCK_STREAM, 0);
-    if (sd == -1)
-    {
-        perror("No se puede abrir el socket cliente\n");
-            exit (1);
-    }
+
+	/* --------------------------------------------------
+		Se abre el socket
+	---------------------------------------------------*/
+  	sd = socket (AF_INET, SOCK_STREAM, 0);
+	if (sd == -1)
+	{
+		perror("No se puede abrir el socket cliente\n");
+    		exit (1);
+	}
 
 
 
-    /* ------------------------------------------------------------------
-        Se rellenan los campos de la estructura con la IP del
-        servidor y el puerto del servicio que solicitamos
-    -------------------------------------------------------------------*/
-    sockname.sin_family = AF_INET;
-    sockname.sin_port = htons(2000);
-    sockname.sin_addr.s_addr =  inet_addr("192.168.1.131");
+	/* ------------------------------------------------------------------
+		Se rellenan los campos de la estructura con la IP del
+		servidor y el puerto del servicio que solicitamos
+	-------------------------------------------------------------------*/
+	sockname.sin_family = AF_INET;
+	sockname.sin_port = htons(2000);
+	sockname.sin_addr.s_addr =  inet_addr("192.168.1.131");
 
-    /* ------------------------------------------------------------------
-        Se solicita la conexión con el servidor
-    -------------------------------------------------------------------*/
-    len_sockname = sizeof(sockname);
+	/* ------------------------------------------------------------------
+		Se solicita la conexión con el servidor
+	-------------------------------------------------------------------*/
+	len_sockname = sizeof(sockname);
 
-    if (connect(sd, (struct sockaddr *)&sockname, len_sockname) == -1)
-    {
-        perror ("Error de conexión");
-        exit(1);
-    }
+	if (connect(sd, (struct sockaddr *)&sockname, len_sockname) == -1)
+	{
+		perror ("Error de conexión");
+		exit(1);
+	}
 
     //Inicializamos las estructuras
     FD_ZERO(&auxfds);
@@ -69,11 +70,11 @@ int main ( )
     FD_SET(sd,&readfds);
 
 
-    /* ------------------------------------------------------------------
-        Se transmite la información (Parte a modificar)
-    -------------------------------------------------------------------*/
-    do
-    {
+	/* ------------------------------------------------------------------
+		Se transmite la información (Parte a modificar)
+	-------------------------------------------------------------------*/
+	do
+	{
         auxfds = readfds;
         salida = select(sd+1,&auxfds,NULL,NULL,NULL);
 

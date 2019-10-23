@@ -1,10 +1,14 @@
 #include <cstdio>
 #include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
 #include <iostream>
 #include <vector>
 #include <ctime>
 #include <netdb.h>
 #include <arpa/inet.h>
+
+#define MSG_SIZE 250
 
 struct ficha
 {
@@ -66,6 +70,18 @@ public:
 
 	bool hasPlayer2(){return (player2.socket != -1);}
 
+	std::vector<ficha> getHand1(){return player1.hand;}
+
+	std::vector<ficha> getHand2(){return player2.hand;}
+
+	char* getUserP1(){return player1.user;}
+
+	char* getUserP2(){return player2.user;}
+
+	int getSocketP1(){return player1.socket;}
+
+	int getSocketP2(){return player2.socket;}
+
 	int getFirst(){return first;}
 
 	int getLast(){return last;}
@@ -76,24 +92,72 @@ public:
 
 	bool isBoardEmpty(){return (board.empty());}
 
-	void showBoard()
+	bool hasFicha(ficha f, std::vector<ficha> hand)
 	{
+		bool result = false;
+
+		for (int i = 0; i < (int) hand.size(); ++i)
+		{
+			if(( hand[i].left == f.left ) and ( hand[i].right == f.right ))
+				result = true;
+
+			else if (( hand[i].left == f.right ) and ( hand[i].right == f.left ))
+				result = true;
+		}
+
+		return result;
+	}
+
+	std::string showBoard()
+	{
+		std::string tablero("TABLERO\t");
+
 		if (isBoardEmpty())
 		{
-			std::cout << "El tablero esta vacio.";
+			tablero = tablero + "VACIO";
 		}
 
 		else
 		{
 			for (int i = 0; i < (int) board.size(); i++)
 			{
-				std::cout << "|" << board[i].left << " · " << board[i].right << "|";
+				tablero = tablero + "|" + std::to_string(board[i].left) + "|" + std::to_string(board[i].right) + "|";
 			}
 		}
 
-		std::cout << "\n\n";
+		tablero = tablero +"\n\n";
+
+		return tablero;
 	}
 
+	std::string messageHandP1()
+	{
+		std::string pieces("FICHA\t");
+
+		for (int i = 0; i < (int) player1.hand.size(); i++)
+		{
+			pieces = pieces + "|" + std::to_string(player1.hand[i].left) + "|" + std::to_string(player1.hand[i].right) + "|";
+		}
+
+		pieces = pieces +"\n\n";
+
+		return pieces;	
+	}
+
+
+	std::string messageHandP2()
+	{
+		std::string pieces("FICHA\t");
+
+		for (int i = 0; i < (int) player2.hand.size(); i++)
+		{
+			pieces = pieces + "|" + std::to_string(player2.hand[i].left) + "|" + std::to_string(player2.hand[i].right) + "|";
+		}
+
+		pieces = pieces +"\n\n";
+
+		return pieces;
+	}
 
 	//Modificadores <--------------------------------------------------
 
@@ -104,6 +168,10 @@ public:
 	void setSocket1(int sd){player1.socket = sd;}
 
 	void setSocket2(int sd){player2.socket = sd;}
+
+	void setHand1(std::vector<ficha> hand){player1.hand = hand;}
+
+	void setHand2(std::vector<ficha> hand){player2.hand = hand;}
 
 	void emptyBoard()
 	{
@@ -220,6 +288,113 @@ public:
 		return inserted;
 	}
 
+
+	int startPlayer()
+	{
+		ficha aux;
+
+		// Comprobamos quien tiene el doble mayor
+		for (int i = 6; i >= 0; i--)
+		{
+			aux.left = i;
+			aux.right = i;
+
+			if(hasFicha(aux, player1.hand))
+			{
+				if(putInBoard(aux))
+				{	
+					quitPieceJ1(aux);
+					return 2;
+				}
+			}
+
+			else if(hasFicha(aux, player2.hand))
+			{
+				if(putInBoard(aux))
+				{
+					quitPieceJ2(aux);
+					return 1;
+				}
+			}
+
+		}
+
+		// Comprobamos quien tiene la ficha mas alta
+		for (int i = 6; i >= 0; i--)
+		{
+			for (int j = i - 1; j >= 0; j--)
+			{
+				aux.left = i;
+				aux.right = j;
+
+				if(hasFicha(aux, player1.hand))
+				{
+					if(putInBoard(aux))
+					{
+						quitPieceJ1(aux);
+						return 2;
+					}
+				}
+
+				else if(hasFicha(aux, player2.hand))
+				{
+					if(putInBoard(aux))
+					{
+						quitPieceJ2(aux);
+						return 1;
+					}
+				}
+			}
+		}
+	}
+
+
+	void quitPieceJ1(ficha f)
+	{
+		bool erase = false;
+
+		for (int i = 0; i < (int) player1.hand.size(); i++)
+		{
+			if (erase == false)
+			{
+				if(( player1.hand[i].left == f.left ) and ( player1.hand[i].right == f.right ))
+				{
+					player1.hand.erase(player1.hand.begin() + i);
+					erase = true;
+				}
+
+				else if(( player1.hand[i].left == f.right ) and ( player1.hand[i].right == f.left ))
+				{
+					player1.hand.erase(player1.hand.begin() + i);
+					erase = true;
+				}
+			}
+		}
+	}
+
+
+	void quitPieceJ2(ficha f)
+	{
+		bool erase = false;
+
+		for (int i = 0; i < (int) player2.hand.size(); i++)
+		{
+			if (erase == false)
+			{
+				if(( player2.hand[i].left == f.left ) and ( player2.hand[i].right == f.right ))
+				{
+					player2.hand.erase(player2.hand.begin() + i);
+					erase = true;
+				}
+	
+				else if(( player2.hand[i].left == f.right ) and ( player2.hand[i].right == f.left ))
+				{
+					player2.hand.erase(player2.hand.begin() + i);
+					erase = true;
+				}
+			}
+		}
+	}
 
 	
 };

@@ -500,7 +500,7 @@ int main ( )
                                                                 send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
                                                                 
                                                                 // Cambiamos los estados de los jugadores
-                                                                for(j = 0; j < numClientes-1; j++)
+                                                                for(j = 0; j < numClientes; j++)
                                                                 {
                                                                     if (arrayClientes[j].sd == partida[pos].getSocketP1())
                                                                         arrayClientes[j].status = 4;        // J1 Puede colocar
@@ -546,7 +546,7 @@ int main ( )
                                                                 send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
                                                                 
                                                                 // Cambiamos los estados de los jugadores
-                                                                for(j = 0; j < numClientes-1; j++)
+                                                                for(j = 0; j < numClientes; j++)
                                                                 {
                                                                     if (arrayClientes[j].sd == partida[pos].getSocketP1())
                                                                         arrayClientes[j].status = 3;    // J1 Espera

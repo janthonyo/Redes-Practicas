@@ -65,6 +65,7 @@ int main ( )
     int i,j,k;
 	int recibidos;
     char identificador[MSG_SIZE];
+    int contNum = 0;
 
     // Cadenas auxiliares
     char *aux;
@@ -74,6 +75,10 @@ int main ( )
     int pos, result;
 
     int on, ret;
+
+    char valorFicha[2];
+    char *extremo;
+    ficha auxFicha;
 
     /*---------------------------------------------------
 
@@ -590,35 +595,144 @@ int main ( )
                                              //COLOCAR FICHA
                                             if(strstr(buffer,"COLOCAR-FICHA") != NULL)
                                             {
-                                                bzero(buffer, sizeof(buffer));
-                                                strcpy(buffer, "Entro en colocar ficha\n");
-                                                send(i, buffer, strlen(buffer), 0);
+                                                printf("Entro en colocar ficha\n");
+                                                //Sacamos "COLOCAR-FICHA" del buffer
+                                                aux = strtok(buffer, " ,");
+
+                                                // Sacamos la ficha y la posicion donde colocarla (izquierda/derecha)
+                                                aux = strtok(NULL, " ,");   //La ficha entra en aux
+                                                contNum = 0;                //Evaluamos si es un comando de colocar ficha válido
+
+                                                //Hallamos los valores de la ficha
+                                                for (int l = 0; l < strlen(aux); l++) {
+                                                    if (isdigit(aux[l])) {
+                                                        if(contNum < 2){
+                                                            // "- '0'" sirve para pasar de char a int el contenido de aux
+                                                            valorFicha[contNum] = (aux[l]) - '0';
+                                                            contNum++;
+                                                        }
+                                                        else{   //Si el comando lleva más de 2 valores numericos
+                                                            bzero(buffer, sizeof(buffer));
+                                                            strcpy(buffer, "-ERR. Comando colocación de ficha inválido: Ficha inválida.\n");
+                                                            send(i, buffer, strlen(buffer), 0);
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+
+                                                extremo = strtok(NULL, " ,");   //El extremo entra en aux
+                                                //AQUI
+                                                printf("%s\n", extremo);
+
+                                                //Si el valor del extremo no es válido
+                                                if ((strcmp( extremo, "derecha\n") != 0 ) && (strcmp( extremo, "izquierda\n") != 0 ))
+                                                {
+                                                    bzero(buffer, sizeof(buffer));
+                                                    strcpy(buffer, "-ERR. Comando colocación de ficha inválido: Extremo inválido.\n");
+                                                    send(i, buffer, strlen(buffer), 0);
+                                                    break;
+                                                }
 
 
+                                                auxFicha.left = valorFicha[0];
+                                                auxFicha.right = valorFicha[1];
+
+                                                //Se coloca la ficha y se borra de la mano del jugador
+                                                //partida[pos].hasFicha(auxFicha, partida[pos].getHand1())
+                                                if(i == partida[pos].getSocketP1()){    //Se compruba que si P1, ha jugado la ficha
+                                                    if (partida[pos].hasFicha(auxFicha, partida[pos].getHand1()))    //Se comprueba que tenga dicha ficha
+                                                    {
+                                                        partida[pos].putInBoard(auxFicha);
+                                                        partida[pos].quitPieceJ1(auxFicha);
+                                                    }
+                                                    else{
+                                                        bzero(buffer, sizeof(buffer));
+                                                        strcpy(buffer, "-ERR. Comando colocación de ficha inválido: Ficha no disponible.\n");
+                                                        send(i, buffer, strlen(buffer), 0);
+                                                        break;
+                                                    }
+                                                }
+                                                else if(i == partida[pos].getSocketP2()){   //O si ha sido P2
+                                                    if (partida[pos].hasFicha(auxFicha, partida[pos].getHand2()))    //Se comprueba que tenga dicha ficha
+                                                    {
+                                                        partida[pos].putInBoard(auxFicha);
+                                                        partida[pos].quitPieceJ2(auxFicha);
+                                                    }
+                                                    else{
+                                                        bzero(buffer, sizeof(buffer));
+                                                        strcpy(buffer, "-ERR. Comando colocación de ficha inválido: Ficha no disponible.\n");
+                                                        send(i, buffer, strlen(buffer), 0);
+                                                        break;
+                                                    }
+                                                }
+                                                else{
+                                                    bzero(buffer, sizeof(buffer));
+                                                    strcpy(buffer, "-ERR. Comando colocación de ficha inválido: Jugador no reconocido..\n");
+                                                    send(i, buffer, strlen(buffer), 0);
+                                                    break;
+                                                }
+
+
+                                                //Se informa de paso de turno
+                                                strcpy(mensaje, "Ficha colocada. Cambio de turno.\n\n");
+                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+
+                                                // Enviamos el tablero
+                                                strcpy(mensaje, partida[pos].showBoard().c_str());
+                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+
+                                                // Send hands
+                                                strcpy(mensaje, partida[pos].messageHandP1().c_str());
+                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+
+                                                strcpy(mensaje, partida[pos].messageHandP2().c_str());
+                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 
                                                 //Cambiamos los estados, correspondientes al cambio de turno
                                                 alternatePlayerStatus(partida[pos], arrayClientes);
-                                                arrayClientes[clienteX].status = 3;
                                             }
+
+
 
                                             //ROBAR FICHA
-                                            else if (strstr(buffer,"ROBAR-FICHA\n") != NULL) {
-                                                bzero(buffer, sizeof(buffer));
-                                                strcpy(buffer, "Entro en robar ficha\n");
-                                                send(i, buffer, strlen(buffer), 0);
+                                            else if (strstr(buffer,"ROBAR-FICHA\n") != NULL)
+                                            {
+                                                printf("Entro en robar-ficha\n");
                                             }
 
+
+
                                             //PASO TURNO
-                                            else if (strstr(buffer,"PASO-TURNO\n") != NULL) {
-                                                bzero(buffer, sizeof(buffer));
-                                                strcpy(buffer, "Entro en paso turno\n");
-                                                send(i, buffer, strlen(buffer), 0);
+                                            else if (strstr(buffer,"PASO-TURNO\n") != NULL)
+                                            {
+                                                printf("Entro en paso-turno\n");
+
+                                                //Se informa de paso de turno
+                                                strcpy(mensaje, "El jugador pasa turno. Cambio de turno.\n\n");
+                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+
+                                                // Enviamos el tablero
+                                                strcpy(mensaje, partida[pos].showBoard().c_str());
+                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+
+                                                // Send hands
+                                                strcpy(mensaje, partida[pos].messageHandP1().c_str());
+                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+
+                                                strcpy(mensaje, partida[pos].messageHandP2().c_str());
+                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 
 
 
                                                 //Cambiamos los estados, correspondientes al cambio de turno
                                                 alternatePlayerStatus(partida[pos], arrayClientes);
                                             }
+
+
 
                                             //COMANDO NO RECONOCIDO -- Se le recuerda al jugador qué puede hacer
                                             else{

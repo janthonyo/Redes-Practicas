@@ -49,7 +49,7 @@ int main ( )
 	-------------------------------------------------------------------*/
 	sockname.sin_family = AF_INET;
 	sockname.sin_port = htons(2050);
-	sockname.sin_addr.s_addr =  inet_addr("127.0.0.1");
+	sockname.sin_addr.s_addr =  inet_addr("192.168.1.131");
 
 	/* ------------------------------------------------------------------
 		Se solicita la conexión con el servidor
@@ -92,7 +92,7 @@ int main ( )
             if(strcmp(buffer,"Desconexion servidor\n") == 0)
                 fin =1;
 
-            //Formatea de forma bonita la fichas
+            //Formatea de forma bonita las fichas
             numbers_len = 0;
             for (int i = 0; i < strlen(buffer); i++) {
                 if (buffer[i]=='|') {

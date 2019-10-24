@@ -27,7 +27,7 @@ class domino
 {
 private:
 	std::vector<ficha> board;
-	std::vector<ficha> forStole; //Monton para robar 
+	std::vector<ficha> forStole; //Monton para robar
 	jugador player1;
 	jugador player2;
 	int first;
@@ -141,7 +141,7 @@ public:
 
 		pieces = pieces +"\n\n";
 
-		return pieces;	
+		return pieces;
 	}
 
 
@@ -244,7 +244,7 @@ public:
 			inserted = true;
 		}
 
-		//Se comprueba si la ficha se puede colocar en el extremo inicial. 
+		//Se comprueba si la ficha se puede colocar en el extremo inicial.
 		else if((first == f.left) or (first == f.right))
 		{
 			if( f.left == first )
@@ -255,7 +255,7 @@ public:
 				board.insert(board.begin(), aux);
 			}
 
-			else 					
+			else
 			{
 				setFirst(f.left);
 				board.insert(board.begin(), f);
@@ -264,16 +264,16 @@ public:
 			inserted = true;
 		}
 
-		//Si no, se comprueba si la ficha se puede colocar en el extremo final. 
+		//Si no, se comprueba si la ficha se puede colocar en el extremo final.
 		else if((last == f.left) or (last == f.right))
 		{
-			if( f.left == last )	
+			if( f.left == last )
 			{
 				setLast(f.right);
 				board.push_back(f);
 			}
 
-			else 					
+			else
 			{
 				setLast(f.left);
 				aux.left = f.right;
@@ -302,7 +302,7 @@ public:
 			if(hasFicha(aux, player1.hand))
 			{
 				if(putInBoard(aux))
-				{	
+				{
 					quitPieceJ1(aux);
 					return 2;
 				}
@@ -386,7 +386,7 @@ public:
 					player2.hand.erase(player2.hand.begin() + i);
 					erase = true;
 				}
-	
+
 				else if(( player2.hand[i].left == f.right ) and ( player2.hand[i].right == f.left ))
 				{
 					player2.hand.erase(player2.hand.begin() + i);
@@ -396,5 +396,5 @@ public:
 		}
 	}
 
-	
+
 };

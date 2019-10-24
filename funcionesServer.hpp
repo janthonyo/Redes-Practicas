@@ -109,9 +109,9 @@ int matchmaking(std::vector<domino> games)
 }
 
 
-void alternatePlayerStatus(domino game, std::vector<cliente> arrayClientes)
+void alternatePlayerStatus(domino& game, std::vector<cliente>& arrayClientes)
 {
-	int sdplayer1 = game.getSocketP1(); 
+	int sdplayer1 = game.getSocketP1();
 	int sdplayer2 = game.getSocketP2();
 
 	for (int i = 0; i < (int) arrayClientes.size(); i++)
@@ -121,18 +121,18 @@ void alternatePlayerStatus(domino game, std::vector<cliente> arrayClientes)
         	if (arrayClientes[i].status == 3)
         		arrayClientes[i].status = 4;
 
-        	else 
+        	else
         		arrayClientes[i].status = 3;
-        }   
+        }
 
         else if (arrayClientes[i].sd == sdplayer2)
         {
         	if (arrayClientes[i].status == 3)
         		arrayClientes[i].status = 4;
 
-        	else 
+        	else
         		arrayClientes[i].status = 3;
-        }       
+        }
 	}
 
 }

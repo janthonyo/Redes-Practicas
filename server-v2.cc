@@ -672,6 +672,23 @@ int main ( )
                                                     break;
                                                 }
 
+												//Se comprueba si era su ultima ficha y ha ganado
+												if(i == partida[pos].getSocketP1()){
+													if(partida[pos].isHand1Empty()){
+														strcpy(mensaje, "¡¡¡Enhorabuena!!! Has ganado la partida.\n\n");
+														send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+														strcpy(mensaje, "Lástima... Has perdido la partida.\n\n");
+														send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+													}
+												}
+												else{
+													if(partida[pos].isHand2Empty()){
+														strcpy(mensaje, "Lástima... Has perdido la partida.\n\n");
+														send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+														strcpy(mensaje, "¡¡¡Enhorabuena!!! Has ganado la partida.\n\n");
+														send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+													}
+												}
 
                                                 //Se informa de paso de turno
                                                 strcpy(mensaje, "Ficha colocada. Cambio de turno.\n\n");
@@ -699,7 +716,43 @@ int main ( )
                                             //ROBAR FICHA
                                             else if (strstr(buffer,"ROBAR-FICHA\n") != NULL)
                                             {
-                                                printf("Entro en robar-ficha\n");
+												printf("Entro en robar-ficha\n");
+
+												if(canPutPiece(i, partida[pos])){
+													strcpy(mensaje, "-ERR. Comando denegado. Tienes fichas disponibles para colocar.\n\n");
+	                                                send(i, mensaje, strlen(mensaje), 0);
+													break;
+												}
+												else{
+													printf("No tienes fichas para poner\n");
+													if(partida[pos].isForStoleEmpty()){
+														strcpy(mensaje, "-ERR. Comando denegado. No quedan fichas para robar.\n\n");
+		                                                send(i, mensaje, strlen(mensaje), 0);
+														break;
+													}
+													else{
+														partida[pos].addToHand(i, partida[pos].stealPiece());
+														printf("He robado ficha\n");
+													}
+												}
+
+												//Se informa del estado de la partida
+												strcpy(mensaje, "Ficha robada. Continúa el mismo jugador.\n\n");
+												send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+												send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+
+												// Enviamos el tablero
+												strcpy(mensaje, partida[pos].showBoard().c_str());
+												send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+												send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+
+												// Send hands
+												strcpy(mensaje, partida[pos].messageHandP1().c_str());
+												send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+
+												strcpy(mensaje, partida[pos].messageHandP2().c_str());
+												send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+
                                             }
 
 
@@ -709,27 +762,41 @@ int main ( )
                                             {
                                                 printf("Entro en paso-turno\n");
 
-                                                //Se informa de paso de turno
-                                                strcpy(mensaje, "El jugador pasa turno. Cambio de turno.\n\n");
-                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+												//Si tienes fichas para colocar no puedes pasar turno
+												if(canPutPiece(i, partida[pos])){
+													strcpy(mensaje, "-ERR. Comando denegado. Tienes fichas disponibles para colocar.\n\n");
+													send(i, mensaje, strlen(mensaje), 0);
+													break;
+												}
+												//Si aun quedan fichas para robar no se puede pasar turno
+												else if (!(partida[pos].isForStoleEmpty())) {
+													strcpy(mensaje, "-ERR. Comando denegado. Hay fichas disponibles para robar.\n\n");
+													send(i, mensaje, strlen(mensaje), 0);
+													break;
+												}
+												else{
+	                                                //Se informa de paso de turno
+	                                                strcpy(mensaje, "El jugador pasa turno. Cambio de turno.\n\n");
+	                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+	                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 
-                                                // Enviamos el tablero
-                                                strcpy(mensaje, partida[pos].showBoard().c_str());
-                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+	                                                // Enviamos el tablero
+	                                                strcpy(mensaje, partida[pos].showBoard().c_str());
+	                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+	                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 
-                                                // Send hands
-                                                strcpy(mensaje, partida[pos].messageHandP1().c_str());
-                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+	                                                // Send hands
+	                                                strcpy(mensaje, partida[pos].messageHandP1().c_str());
+	                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
 
-                                                strcpy(mensaje, partida[pos].messageHandP2().c_str());
-                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+	                                                strcpy(mensaje, partida[pos].messageHandP2().c_str());
+	                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 
 
 
-                                                //Cambiamos los estados, correspondientes al cambio de turno
-                                                alternatePlayerStatus(partida[pos], arrayClientes);
+	                                                //Cambiamos los estados, correspondientes al cambio de turno
+	                                                alternatePlayerStatus(partida[pos], arrayClientes);
+												}
                                             }
 
 

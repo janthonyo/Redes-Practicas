@@ -679,10 +679,7 @@ int main ( )
 														send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
 														strcpy(mensaje, "Lástima... Has perdido la partida.\n\n");
 														send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-<<<<<<< HEAD
 														exit(1);
-=======
->>>>>>> 9a3009aded1a4f321f35e671d7f915f4ac4b83fc
 													}
 												}
 												else{
@@ -691,10 +688,7 @@ int main ( )
 														send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
 														strcpy(mensaje, "¡¡¡Enhorabuena!!! Has ganado la partida.\n\n");
 														send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-<<<<<<< HEAD
 														exit(2);
-=======
->>>>>>> 9a3009aded1a4f321f35e671d7f915f4ac4b83fc
 													}
 												}
 

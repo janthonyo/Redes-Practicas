@@ -92,6 +92,10 @@ public:
 
 	bool isBoardEmpty(){return (board.empty());}
 
+	bool isHand1Empty(){return (player1.hand.size() == 0);}
+
+	bool isHand2Empty(){return (player2.hand.size() == 0);}
+
 	bool hasFicha(ficha f, std::vector<ficha> hand)
 	{
 		bool result = false;
@@ -132,7 +136,7 @@ public:
 
 	std::string messageHandP1()
 	{
-		std::string pieces("FICHA\t");
+		std::string pieces("FICHAS\t");
 
 		for (int i = 0; i < (int) player1.hand.size(); i++)
 		{
@@ -228,6 +232,17 @@ public:
 		return stolenPiece;
 	}
 
+	bool addToHand(int i, ficha pieceToAdd)
+	{
+		if(i==getSocketP1())
+		{
+			player1.hand.push_back(pieceToAdd);
+		}
+		else if(i==getSocketP2())
+		{
+			player2.hand.push_back(pieceToAdd);
+		}
+	}
 
 	bool putInBoard(ficha f)
 	{

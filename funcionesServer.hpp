@@ -136,3 +136,64 @@ void alternatePlayerStatus(domino& game, std::vector<cliente>& arrayClientes)
 	}
 
 }
+
+bool canPutPiece(int i, domino& game)
+{
+    //Devuelve true si tienes piezas disponibles para colocar, false si no
+    //i es el sd de quien envio el mensaje, tambien identificado como i en server.cc
+    if(i==game.getSocketP1())
+    {
+        for (int j = 0; j < (int) game.getHand1().size(); j++) {
+            //Comprueba si coincide first
+            if(game.getFirst() == game.getHand1()[j].left)
+            {
+                return true;
+            }
+            if(game.getFirst() == game.getHand1()[j].right)
+            {
+                return true;
+            }
+
+            //Comprueba si coincide last
+            if(game.getLast() == game.getHand1()[j].left)
+            {
+                return true;
+            }
+            if(game.getLast() == game.getHand1()[j].right)
+            {
+                return true;
+            }
+        }
+    }
+
+    else if(i==game.getSocketP2())
+    {
+        for (int j = 0; j < (int) game.getHand2().size(); j++) {
+            //Comprueba si coincide first
+            if(game.getFirst() == game.getHand2()[j].left)
+            {
+                return true;
+            }
+            if(game.getFirst() == game.getHand2()[j].right)
+            {
+                return true;
+            }
+
+            //Comprueba si coincide last
+            if(game.getLast() == game.getHand2()[j].left)
+            {
+                return true;
+            }
+            if(game.getLast() == game.getHand2()[j].right)
+            {
+                return true;
+            }
+        }
+    }
+
+    else{
+        printf("Error - Este caso no deberia ocurrir nunca.\n");
+    }
+
+    return false;
+}

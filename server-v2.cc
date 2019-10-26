@@ -16,7 +16,7 @@
 
 #define MSG_SIZE 250
 #define MAX_CLIENTS 30
-#define MAX_GAMES 10
+#define MAX_GAMES 1
 
 
 /*
@@ -25,7 +25,7 @@
 
 
 void manejador(int signum);
-void salirCliente(int socket, fd_set * readfds, int * numClientes, std::vector<cliente> arrayClientes);
+void salirCliente(int socket, fd_set * readfds, int * numClientes, std::vector<cliente> &arrayClientes);
 
 
 int main ( )
@@ -60,6 +60,7 @@ int main ( )
     partida.resize(MAX_GAMES);
 
     std::vector<int> lista_espera;
+    lista_espera.clear();
 
     int numClientes = 0;
     int numPartidas = 0;
@@ -327,6 +328,7 @@ int main ( )
                                                 }
                                             }
 
+                                            // El usuario quiere salir
                                             else if(strcmp(buffer,"SALIR\n") == 0)
                                             {
                                                     bzero(buffer, sizeof(buffer));
@@ -379,6 +381,7 @@ int main ( )
                                                 }
                                             }
 
+                                            // El usuario quiere salir
                                             else if(strcmp(buffer,"SALIR\n") == 0)
                                             {
 
@@ -416,18 +419,16 @@ int main ( )
                                                     pos = matchmaking(partida);
 
                                                     // pos = -1: -> Indica que no hay partidas disponibles actualmente
-                                                    if (pos == -1)
+                                                    if (pos == -1)  // No deberia darse el caso.
                                                     {
                                                         bzero(buffer, sizeof(buffer));
-                                                        strcpy(buffer, "-ERR. No hay partidas disponibles.\n");
+                                                        strcpy(buffer, "+Ok. No hay partidas disponibles. Esperando partida...\n");
                                                         send(i, buffer, strlen(buffer), 0);
-
-                                                        // QUEDA: controlar el orden de entrada de los jugadores que no
-                                                        //        pueden entrar de momento
 
                                                         // Guardamos en lista de espera el socket del usuario
                                                         if(!userInWaitList(i, lista_espera))
                                                         {
+                                                            std::cout << "A lista de espera\n";
                                                             lista_espera.push_back(i);
                                                         }
                                                     }
@@ -589,11 +590,19 @@ int main ( )
                                                 else
                                                 {
                                                     bzero(buffer, sizeof(buffer));
-                                                    strcpy(buffer, "-ERR. No hay partidas disponibles.\n");
+                                                    strcpy(buffer, "+Ok. No hay partidas disponibles. Esperando partida...\n");
                                                     send(i, buffer, strlen(buffer), 0);
+
+                                                    // Guardamos en lista de espera el socket del usuario
+                                                    if(!userInWaitList(i, lista_espera))
+                                                    {
+                                                        std::cout << "A lista de espera: " << i << "\n";
+                                                        lista_espera.push_back(i);
+                                                    }
                                                 }
                                             }
 
+                                            // El usuario quiere salir
                                             else if(strcmp(buffer,"SALIR\n") == 0)
                                             {
                                                 // El usuario tiene asignada una partida
@@ -639,6 +648,7 @@ int main ( )
 
                                         // Esperando turno
                                         case 3:                 // CREO QUE ACABADO
+                                            // El usuario quiere salir
                                             if(strstr(buffer, "SALIR\n") != NULL)
                                             {
                                                 // Obtenemos la partida en la que jugaba el cliente
@@ -653,13 +663,11 @@ int main ( )
                                                 // Comprobamos cual es el jugador que NO sale
                                                 if(arrayClientes[clienteX].sd == partida[pos].getSocketP1())
                                                 {
-                                                    //std::cout << "Sale J1\n";
                                                     for( j = 0; j < numClientes; j++)
                                                     {
                                                         if(arrayClientes[j].sd == partida[pos].getSocketP2())
                                                         {
                                                             // Cambiamos el estado para que pueda iniciar otra partida
-                                                            //std::cout << "Cambio estado de J2\n";
                                                             arrayClientes[j].status = 2;
                                                         }
                                                     }
@@ -673,9 +681,7 @@ int main ( )
                                                         if(arrayClientes[j].sd == partida[pos].getSocketP1())
                                                         {
                                                             // Cambiamos el estado para que pueda iniciar otra partida
-                                                            //std::cout << "Cambio estado de J1\n";
                                                             arrayClientes[j].status = 2;
-
                                                         }
                                                     }
                                                 }
@@ -694,6 +700,14 @@ int main ( )
 
                                                 // Limpiamos el tablero
                                                 partida[pos].emptyBoard();
+
+                                                std::cout << numPartidas << " partidas\n";
+                                                numPartidas--;
+                                                std::cout << numPartidas << " partidas\n";
+
+                                                // Comprobamos la lista de espera y asignamos los jugadores si los hubiera
+                                                waitListGame(lista_espera, partida, pos, arrayClientes, numClientes, &numPartidas);
+
                                             }
 
                                             else
@@ -859,7 +873,14 @@ int main ( )
 														send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
 														strcpy(mensaje, "Lástima... Has perdido la partida.\n\n");
 														send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-														exit(1);
+
+                                                        // (J.A.) Gestionamos los estados de los jugadores
+                                                        managePostGame(partida, pos, arrayClientes, numClientes, &numPartidas);
+
+                                                        // (J.A.) Comprobamos si hay jugadores en espera y los añadimos a la partida que queda libre
+                                                        waitListGame(lista_espera, partida, pos, arrayClientes, numClientes, &numPartidas);
+
+														break;
 													}
 												}
 												else{
@@ -868,7 +889,14 @@ int main ( )
 														send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
 														strcpy(mensaje, "¡¡¡Enhorabuena!!! Has ganado la partida.\n\n");
 														send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-														exit(2);
+                                                        
+                                                        // (J.A.) Gestionamos los estados de los jugadores
+                                                        managePostGame(partida, pos, arrayClientes, numClientes, &numPartidas);
+
+                                                        // (J.A.) Comprobamos si hay jugadores en espera y los añadimos a la partida que queda libre
+                                                        waitListGame(lista_espera, partida, pos, arrayClientes, numClientes, &numPartidas);
+
+                                                        break;
 													}
 												}
 
@@ -987,6 +1015,7 @@ int main ( )
 												}
                                             }
 
+                                            // El usuario quiere salir
                                             else if(strstr(buffer, "SALIR\n") != NULL)
                                             {
                                                 // Obtenemos la partida en la que jugaba el cliente
@@ -1037,6 +1066,12 @@ int main ( )
 
                                                 // Limpiamos el tablero
                                                 partida[pos].emptyBoard();
+                                                std::cout << numPartidas << " partidas\n";                                                
+                                                numPartidas--;
+                                                std::cout << numPartidas << " partidas\n";
+
+                                                // Comprobamos la lista de espera y asignamos los jugadores si los hubiera
+                                                waitListGame(lista_espera, partida, pos, arrayClientes, numClientes, &numPartidas);
                                             }
 
                                             //COMANDO NO RECONOCIDO -- Se le recuerda al jugador qué puede hacer
@@ -1072,7 +1107,7 @@ int main ( )
 
 }
 
-void salirCliente(int socket, fd_set * readfds, int * numClientes, std::vector<cliente> arrayClientes){
+void salirCliente(int socket, fd_set * readfds, int * numClientes, std::vector<cliente> &arrayClientes){
 
     char buffer[250];
     int j;
@@ -1089,6 +1124,8 @@ void salirCliente(int socket, fd_set * readfds, int * numClientes, std::vector<c
 
     (*numClientes)--;
 
+    /*----------------------------------------------------------
+
     bzero(buffer,sizeof(buffer));
     sprintf(buffer,"Desconexión del cliente: %d\n",socket);
 
@@ -1096,6 +1133,7 @@ void salirCliente(int socket, fd_set * readfds, int * numClientes, std::vector<c
         if(arrayClientes[j].sd != socket)
             send(arrayClientes[j].sd,buffer,strlen(buffer),0);
 
+    ----------------------------------------------------------*/
 
 }
 

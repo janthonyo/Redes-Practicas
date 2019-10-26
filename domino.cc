@@ -183,6 +183,9 @@ public:
 		forStole.clear();
 		first = -1;
 		last = -1;
+		player1.socket = -1;
+		player2.socket = -1;
+
 
 		//"Amontonamos" las fichas para repartir y robar.
 		ficha aux;

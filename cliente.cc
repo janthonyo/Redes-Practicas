@@ -12,8 +12,14 @@
 //Includes añadidos
 #include <ctype.h>
 
-int main ( )
+
+int main (int argc, char const *argv[])
 {
+    if(argc != 2)
+    {
+        printf("-ERR. No ha introducido la IP del servidor.\n");
+        exit(1);
+    }
 
 	/*----------------------------------------------------
 		Descriptor del socket y buffer de datos
@@ -49,7 +55,7 @@ int main ( )
 	-------------------------------------------------------------------*/
 	sockname.sin_family = AF_INET;
 	sockname.sin_port = htons(2050);
-	sockname.sin_addr.s_addr =  inet_addr("127.0.0.1");
+	sockname.sin_addr.s_addr =  inet_addr(argv[1]);
 
 	/* ------------------------------------------------------------------
 		Se solicita la conexión con el servidor

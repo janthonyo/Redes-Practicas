@@ -82,7 +82,7 @@ int main ( )
     char *extremo;
     ficha auxFicha;
 
-	std::string auxstr("FICHA\t");	//Para el mensaje de robo de ficha
+	std::string auxstr;	//Para el mensaje de robo de ficha
 
     /*---------------------------------------------------
 
@@ -505,11 +505,19 @@ int main ( )
                                                             // Turno del J1 / Espera J2
                                                             if (result == 1)
                                                             {
-                                                                //Enviamos que jugador ha sacado.
-                                                                strcpy(mensaje, "+Ok. Jugador 2 (");
-                                                                strcat(mensaje, partida[pos].getUserP2());
-                                                                strcat(mensaje, ") sale y ha colocado ficha.\n\n");
+																//Enviamos los jugadores
+																strcpy(mensaje, "\nJUGADORES:\n");
+																strcat(mensaje, "\tJugador1(");
+																strcat(mensaje, partida[pos].getUserP1());
+                                                                strcat(mensaje, ")\n");
+																strcat(mensaje, "\tJugador2(");
+																strcat(mensaje, partida[pos].getUserP2());
+                                                                strcat(mensaje, ")\n\n");
+																send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+                                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 
+																//Enviamos que jugador ha sacado.
+                                                                strcpy(mensaje, "+Ok. Jugador2 sale y ha colocado ficha.\n\n");
                                                                 send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
                                                                 send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 
@@ -550,11 +558,19 @@ int main ( )
                                                             // Turno de J2 / Espera J1
                                                             else
                                                             {
-                                                                //Enviamos que jugador ha sacado.
-                                                                strcpy(mensaje, "+Ok. Jugador 1 (");
-                                                                strcat(mensaje, partida[pos].getUserP1());
-                                                                strcat(mensaje, ") sale y ha colocado ficha.\n\n");
+																//Enviamos los jugadores
+																strcpy(mensaje, "\nJUGADORES:\n");
+																strcat(mensaje, "\tJugador1(");
+																strcat(mensaje, partida[pos].getUserP1());
+                                                                strcat(mensaje, ")\n");
+																strcat(mensaje, "\tJugador2(");
+																strcat(mensaje, partida[pos].getUserP2());
+                                                                strcat(mensaje, ")\n\n");
+																send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+                                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 
+                                                                //Enviamos que jugador ha sacado.
+                                                                strcpy(mensaje, "+Ok. Jugador1 sale y ha colocado ficha.\n\n");
                                                                 send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
                                                                 send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 
@@ -716,7 +732,7 @@ int main ( )
                                         // Turno de colocar
                                         case 4:                 // ACABADO
                                              //COLOCAR FICHA
-                                            if(strstr(buffer,"COLOCAR-FICHA") != NULL)
+                                            if(strstr(buffer,"COLOCAR-FICHA ") != NULL)
                                             {
 
                                                 //Sacamos "COLOCAR-FICHA" del buffer
@@ -860,7 +876,7 @@ int main ( )
 												//Se comprueba si era su ultima ficha y ha ganado
 												if(i == partida[pos].getSocketP1()){
 													if(partida[pos].isHand1Empty()){
-														strcpy(mensaje, "+Ok. Partida Finalizada. Jugador1 ha ganado la partida.”\n\n");
+														strcpy(mensaje, "+Ok. Partida Finalizada. Jugador1 ha ganado la partida.\n\n");
 														send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
 														send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 														//Se informa al servidor también
@@ -870,7 +886,7 @@ int main ( )
 												}
 												else{
 													if(partida[pos].isHand2Empty()){
-														strcpy(mensaje, "+Ok. Partida Finalizada. Jugador2 ha ganado la partida.”\n\n");
+														strcpy(mensaje, "+Ok. Partida Finalizada. Jugador2 ha ganado la partida.\n\n");
 														send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
 														send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 														//Se informa al servidor también
@@ -880,17 +896,17 @@ int main ( )
 												}
 
 												//Se informa de paso de turno
-											 if(i == partida[pos].getSocketP1()){
-												 strcpy(mensaje, "+Ok. Turno de partida.\n\n");
-												 send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-											 }
-											 else if (i == partida[pos].getSocketP2()) {
-												 strcpy(mensaje, "+Ok. Turno de partida.\n\n");
-												 send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-											 }
-											 else{
-												 printf("-ERR. Comando PASO-TURNO inválido: Jugador no reconocido.");
-											 }
+												if(i == partida[pos].getSocketP1()){
+													strcpy(mensaje, "+Ok. Turno de partida.\n\n");
+													send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+												}
+												else if (i == partida[pos].getSocketP2()) {
+													strcpy(mensaje, "+Ok. Turno de partida.\n\n");
+													send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+												}
+												else{
+													printf("-ERR. Comando PASO-TURNO inválido: Jugador no reconocido.");
+												}
 
                                                 // Enviamos el tablero
                                                 strcpy(mensaje, partida[pos].showBoard().c_str());
@@ -935,6 +951,7 @@ int main ( )
 												}
 
 												//Se informa de la ficha robada
+												auxstr = "FICHA\t";
 												auxstr = auxstr + "|" + std::to_string(auxFicha.left) + "|" + std::to_string(auxFicha.right) + "|\n\n";
 												strcpy(mensaje, auxstr.c_str());
 												send(i, mensaje, strlen(mensaje), 0);
@@ -977,6 +994,17 @@ int main ( )
 													strcpy(mensaje, "+Ok. No es necesario pasar turno.\n\n");
 													send(i, mensaje, strlen(mensaje), 0);
 													break;
+												}
+												//Si el otro jugador tampoco puede poner la partida esta cerrada
+												else if (i == partida[pos].getSocketP1()) {
+													if (!(canPutPiece(partida[pos].getSocketP2(), partida[pos]))) {
+														partida[pos].partidaCerrada();
+													}
+												}
+												else if (i == partida[pos].getSocketP2()) {
+													if (!(canPutPiece(partida[pos].getSocketP1(), partida[pos]))) {
+														partida[pos].partidaCerrada();
+													}
 												}
 												else{
 	                                                //Se informa de paso de turno
@@ -1066,7 +1094,7 @@ int main ( )
                                             //COMANDO NO RECONOCIDO -- Se le recuerda al jugador qué puede hacer
                                             else{
                                                 bzero(buffer, sizeof(buffer));
-                                                strcpy(buffer, "-ERR. Comando inválido. (Comandos válidos: COLOCAR-FICHA <|valor·valor|>, ROBAR-FICHA, PASO-TURNO). Es tu turno...\n");
+                                                strcpy(buffer, "-ERR. Comando inválido. (Comandos válidos: COLOCAR-FICHA <|valor·valor|>,<extremo>; ROBAR-FICHA; PASO-TURNO). Es tu turno...\n");
                                                 send(i, buffer, strlen(buffer), 0);
                                             }
 

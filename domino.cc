@@ -477,5 +477,58 @@ public:
 		}
 	}
 
+	void partidaCerrada()
+	{
+		int total1 = 0;
+		int total2 = 0;
+
+		char mensaje[250];
+
+		for (int i = 0; i < (int) player1.hand.size(); i++)
+		{
+			total1 += player1.hand[i].left;
+			total1 += player1.hand[i].right;
+		}
+
+		for (int i = 0; i < (int) player2.hand.size(); i++)
+		{
+			total2 += player2.hand[i].left;
+			total2 += player2.hand[i].right;
+		}
+
+		if (total1 < total2) {
+			strcpy(mensaje, "+Ok. Partida cerrada.\n");
+			send(getSocketP1(), mensaje, strlen(mensaje), 0);
+			send(getSocketP2(), mensaje, strlen(mensaje), 0);
+			strcpy(mensaje, "+Ok. Partida Finalizada. Jugador1 ha ganado la partida.\n\n");
+			send(getSocketP1(), mensaje, strlen(mensaje), 0);
+			send(getSocketP2(), mensaje, strlen(mensaje), 0);
+			//Se informa al servidor también
+			printf("+Ok. Partida finalizada\n");
+			exit(1);
+		}
+		else if (total2 < total1) {
+			strcpy(mensaje, "+Ok. Partida cerrada.\n");
+			send(getSocketP1(), mensaje, strlen(mensaje), 0);
+			send(getSocketP2(), mensaje, strlen(mensaje), 0);
+			strcpy(mensaje, "+Ok. Partida Finalizada. Jugador2 ha ganado la partida.\n\n");
+			send(getSocketP1(), mensaje, strlen(mensaje), 0);
+			send(getSocketP2(), mensaje, strlen(mensaje), 0);
+			//Se informa al servidor también
+			printf("+Ok. Partida finalizada\n");
+			exit(2);
+		}
+		else{
+			strcpy(mensaje, "+Ok. Partida cerrada.\n");
+			send(getSocketP1(), mensaje, strlen(mensaje), 0);
+			send(getSocketP2(), mensaje, strlen(mensaje), 0);
+			strcpy(mensaje, "+Ok. Partida Finalizada. Ambos jugadores tienen la misma cantidad de puntos. Es un empate.\n\n");
+			send(getSocketP1(), mensaje, strlen(mensaje), 0);
+			send(getSocketP2(), mensaje, strlen(mensaje), 0);
+			//Se informa al servidor también
+			printf("+Ok. Partida finalizada\n");
+			exit(0);
+		}
+	}
 
 };

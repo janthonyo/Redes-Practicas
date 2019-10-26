@@ -49,7 +49,7 @@ int main ( )
 	-------------------------------------------------------------------*/
 	sockname.sin_family = AF_INET;
 	sockname.sin_port = htons(2050);
-	sockname.sin_addr.s_addr =  inet_addr("127.0.0.1");
+	sockname.sin_addr.s_addr =  inet_addr("192.168.1.131");
 
 	/* ------------------------------------------------------------------
 		Se solicita la conexión con el servidor
@@ -86,10 +86,10 @@ int main ( )
 
             //printf("\n%s\n",buffer);
 
-            if(strcmp(buffer,"Demasiados clientes conectados\n") == 0)
+            if(strcmp(buffer,"-ERR. Demasiados clientes conectados\n") == 0)
                 fin =1;
 
-            if(strcmp(buffer,"Desconexion servidor\n") == 0)
+            if(strcmp(buffer,"-ERR. Desconexion servidor\n") == 0)
                 fin =1;
 
             if(strcmp(buffer, "+Ok. Desconexión procesada\n") == 0)

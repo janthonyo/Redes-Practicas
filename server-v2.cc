@@ -82,6 +82,8 @@ int main ( )
     char *extremo;
     ficha auxFicha;
 
+	std::string auxstr("FICHA\t");	//Para el mensaje de robo de ficha
+
     /*---------------------------------------------------
 
         Status nos servira para ver el estado en el que
@@ -916,10 +918,16 @@ int main ( )
 														break;
 													}
 													else{
-														partida[pos].addToHand(i, partida[pos].stealPiece());
+														auxFicha = partida[pos].stealPiece();
+														partida[pos].addToHand(i, auxFicha);
 														printf("He robado ficha\n");
 													}
 												}
+
+												//Se informa de la ficha robada
+												auxstr = auxstr + "|" + std::to_string(auxFicha.left) + "|" + std::to_string(auxFicha.right) + "|\n\n";
+												strcpy(mensaje, auxstr.c_str());
+												send(i, mensaje, strlen(mensaje), 0);
 
 												//Se informa del estado de la partida
 												strcpy(mensaje, "Ficha robada. Continúa el mismo jugador.\n\n");

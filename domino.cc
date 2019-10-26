@@ -151,7 +151,7 @@ public:
 
 	std::string messageHandP2()
 	{
-		std::string pieces("FICHA\t");
+		std::string pieces("FICHAS\t");
 
 		for (int i = 0; i < (int) player2.hand.size(); i++)
 		{

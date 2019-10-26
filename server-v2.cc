@@ -68,7 +68,7 @@ int main ( )
     int i,j,k;
 	int recibidos;
     char identificador[MSG_SIZE];
-    int contNum = 0;
+    int contNum = 0, contCoincidencias = 0;
 
     // Cadenas auxiliares
     char *aux;
@@ -82,6 +82,8 @@ int main ( )
     char valorFicha[2];
     char *extremo;
     ficha auxFicha;
+
+	std::string auxstr;	//Para el mensaje de robo de ficha
 
     /*---------------------------------------------------
 
@@ -195,7 +197,7 @@ int main ( )
                                 else
                                 {
                                     bzero(buffer,sizeof(buffer));
-                                    strcpy(buffer,"Demasiados clientes conectados\n");
+                                    strcpy(buffer,"-ERR. Demasiados clientes conectados\n");
                                     send(new_sd,buffer,strlen(buffer),0);
                                     close(new_sd);
                                 }
@@ -213,7 +215,7 @@ int main ( )
                             if(strcmp(buffer,"SALIR\n") == 0){
 
                                 for (j = 0; j < numClientes; j++){
-                                    send(arrayClientes[j].sd, "Desconexion servidor\n", strlen("Desconexion servidor\n"),0);
+                                    send(arrayClientes[j].sd, "-ERR. Desconexion servidor\n", strlen("-ERR. Desconexion servidor\n"),0);
                                     close(arrayClientes[j].sd);
                                     FD_CLR(arrayClientes[j].sd,&readfds);
                                 }
@@ -277,6 +279,23 @@ int main ( )
                                                     send(i, buffer, strlen(buffer), 0);
                                                 }
 
+												//Se comprueba que ese cliente no esté ya conectado
+												contCoincidencias = 0;
+												for (int l = 0; l < numClientes; l++) {
+													if(strcmp(arrayClientes[l].user, arrayClientes[clienteX].user) == 0){//aqui
+														contCoincidencias++;
+														printf("Numcoin %d\n", contCoincidencias);
+													}
+												}
+												if (contCoincidencias != 1) {
+													bzero(buffer, sizeof(buffer));
+													strcpy(buffer, "-ERR. Usuario inválido: Dicho usuario ya está conectado.\n");
+													send(i, buffer, strlen(buffer), 0);
+													strcpy(arrayClientes[clienteX].user, "");
+													arrayClientes[clienteX].status = 0;
+													break;
+												}
+
                                             }
 
                                             else if ( strstr(buffer, "REGISTRO " ) != NULL )
@@ -315,6 +334,8 @@ int main ( )
                                                     bzero(buffer, sizeof(buffer));
                                                     strcpy(buffer, "+Ok. Usuario registrado correctamente\n");
                                                     send(i, buffer, strlen(buffer), 0);
+													//Se informa al servidor también
+													printf("+Ok. Nuevo usuario registrado\n");
 
                                                     arrayClientes[clienteX].status = 2;
                                                 }
@@ -361,13 +382,14 @@ int main ( )
 
                                                 if( verifyPassword(arrayClientes[clienteX].user, aux))
                                                 {
-                                                    // Guardamos la passwd del cliente
-
+													// Guardamos la passwd del cliente
                                                     strcpy(arrayClientes[clienteX].passwd, aux);
 
                                                     bzero(buffer, sizeof(buffer));
                                                     strcpy(buffer, "+Ok. Usuario validado.\n");
                                                     send(i, buffer, strlen(buffer), 0);
+													//Se informa al servidor también
+													printf("+Ok. Inicio de sesión exitoso.\n");
 
                                                     //Actualizamos su estado
                                                     arrayClientes[clienteX].status = 2;
@@ -376,7 +398,7 @@ int main ( )
                                                 else
                                                 {
                                                     bzero(buffer, sizeof(buffer));
-                                                    strcpy(buffer, "-ERR. Error en la validacion\n");
+                                                    strcpy(buffer, "-ERR. Error en la validación.\n");
                                                     send(i, buffer, strlen(buffer), 0);
                                                 }
                                             }
@@ -386,7 +408,7 @@ int main ( )
                                             {
 
                                                 bzero(buffer, sizeof(buffer));
-                                                strcpy(buffer, "+Ok. Desconexión procesada\n");
+                                                strcpy(buffer, "+Ok. Desconexión procesada.\n");
                                                 send(i, buffer, strlen(buffer), 0);
 
                                                 salirCliente(i,&readfds,&numClientes,arrayClientes);
@@ -399,7 +421,7 @@ int main ( )
                                                 // estado.
 
                                                 bzero(buffer, sizeof(buffer));
-                                                strcpy(buffer, "> Introduzca la contraseña (PASSWORD <password>)\n");
+                                                strcpy(buffer, "> Introduzca la contraseña (PASSWORD <password>).\n");
                                                 send(i, buffer, strlen(buffer), 0);
                                             }
                                         break;
@@ -473,6 +495,8 @@ int main ( )
                                                             bzero(buffer, sizeof(buffer));
                                                             strcpy(buffer, "+Ok. Empieza la partida.\n");
                                                             send(i, buffer, strlen(buffer), 0);
+															//Se informa al servidor también
+															printf("+Ok. Empieza una nueva partida.\n");
 
                                                             numPartidas++;
 
@@ -498,11 +522,19 @@ int main ( )
                                                             // Turno del J1 / Espera J2
                                                             if (result == 1)
                                                             {
-                                                                //Enviamos que jugador ha sacado.
-                                                                strcpy(mensaje, "+Jugador 2 (");
-                                                                strcat(mensaje, partida[pos].getUserP2());
-                                                                strcat(mensaje, ") sale y ha colocado ficha.\n\n");
+																//Enviamos los jugadores
+																strcpy(mensaje, "\nJUGADORES:\n");
+																strcat(mensaje, "\tJugador1(");
+																strcat(mensaje, partida[pos].getUserP1());
+                                                                strcat(mensaje, ")\n");
+																strcat(mensaje, "\tJugador2(");
+																strcat(mensaje, partida[pos].getUserP2());
+                                                                strcat(mensaje, ")\n\n");
+																send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+                                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 
+																//Enviamos que jugador ha sacado.
+                                                                strcpy(mensaje, "+Ok. Jugador2 sale y ha colocado ficha.\n\n");
                                                                 send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
                                                                 send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 
@@ -543,11 +575,19 @@ int main ( )
                                                             // Turno de J2 / Espera J1
                                                             else
                                                             {
-                                                                //Enviamos que jugador ha sacado.
-                                                                strcpy(mensaje, "+Jugador 1 (");
-                                                                strcat(mensaje, partida[pos].getUserP1());
-                                                                strcat(mensaje, ") sale y ha colocado ficha.\n\n");
+																//Enviamos los jugadores
+																strcpy(mensaje, "\nJUGADORES:\n");
+																strcat(mensaje, "\tJugador1(");
+																strcat(mensaje, partida[pos].getUserP1());
+                                                                strcat(mensaje, ")\n");
+																strcat(mensaje, "\tJugador2(");
+																strcat(mensaje, partida[pos].getUserP2());
+                                                                strcat(mensaje, ")\n\n");
+																send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+                                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 
+                                                                //Enviamos que jugador ha sacado.
+                                                                strcpy(mensaje, "+Ok. Jugador1 sale y ha colocado ficha.\n\n");
                                                                 send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
                                                                 send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 
@@ -713,7 +753,7 @@ int main ( )
                                             else
                                             {
                                                 bzero(buffer, sizeof(buffer));
-                                                strcpy(buffer, "Estado 3. Esperando turno...\n");
+                                                strcpy(buffer, "-ERR. Turno rival. Esperando turno...\n");
                                                 send(i, buffer, strlen(buffer), 0);
                                             }
 
@@ -722,9 +762,8 @@ int main ( )
                                         // Turno de colocar
                                         case 4:                 // ACABADO
                                              //COLOCAR FICHA
-                                            if(strstr(buffer,"COLOCAR-FICHA") != NULL)
+                                            if(strstr(buffer,"COLOCAR-FICHA ") != NULL)
                                             {
-                                                printf("Entro en colocar ficha\n");
 
                                                 //Sacamos "COLOCAR-FICHA" del buffer
                                                 aux = strtok(buffer, " ,");
@@ -751,8 +790,6 @@ int main ( )
 												}
 
                                                 extremo = strtok(NULL, " ,");   //El extremo entra en aux
-                                                //AQUI
-                                                printf("%s\n", extremo);
 
                                                 //Si el valor del extremo no es válido
                                                 if ((strcmp( extremo, "derecha\n") != 0 ) && (strcmp( extremo, "izquierda\n") != 0 ))
@@ -805,7 +842,7 @@ int main ( )
 
 														else
 														{
-															printf("Caso imposible 1, esto no deberia pasar\n");
+															printf("-ERR. Caso imposible 1, esto no deberia ocurrir. Extremo no reconocido.\n");
 														}
                                                     }
 
@@ -849,7 +886,7 @@ int main ( )
 
 														else
 														{
-															printf("Caso imposible 2, esto no deberia pasar\n");
+															printf("-ERR. Caso imposible 2, esto no deberia ocurrir. Extremo no reconocido.\n");
 														}
                                                     }
                                                     else{
@@ -869,9 +906,8 @@ int main ( )
 												//Se comprueba si era su ultima ficha y ha ganado
 												if(i == partida[pos].getSocketP1()){
 													if(partida[pos].isHand1Empty()){
-														strcpy(mensaje, "¡¡¡Enhorabuena!!! Has ganado la partida.\n\n");
+														strcpy(mensaje, "+Ok. Partida Finalizada. Jugador1 ha ganado la partida.\n\n");
 														send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-														strcpy(mensaje, "Lástima... Has perdido la partida.\n\n");
 														send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 
                                                         // (J.A.) Gestionamos los estados de los jugadores
@@ -885,9 +921,8 @@ int main ( )
 												}
 												else{
 													if(partida[pos].isHand2Empty()){
-														strcpy(mensaje, "Lástima... Has perdido la partida.\n\n");
+														strcpy(mensaje, "+Ok. Partida Finalizada. Jugador2 ha ganado la partida.\n\n");
 														send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-														strcpy(mensaje, "¡¡¡Enhorabuena!!! Has ganado la partida.\n\n");
 														send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
                                                         
                                                         // (J.A.) Gestionamos los estados de los jugadores
@@ -900,10 +935,18 @@ int main ( )
 													}
 												}
 
-                                                //Se informa de paso de turno
-                                                strcpy(mensaje, "Ficha colocada. Cambio de turno.\n\n");
-                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+												//Se informa de paso de turno
+												if(i == partida[pos].getSocketP1()){
+													strcpy(mensaje, "+Ok. Turno de partida.\n\n");
+													send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+												}
+												else if (i == partida[pos].getSocketP2()) {
+													strcpy(mensaje, "+Ok. Turno de partida.\n\n");
+													send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+												}
+												else{
+													printf("-ERR. Comando PASO-TURNO inválido: Jugador no reconocido.");
+												}
 
                                                 // Enviamos el tablero
                                                 strcpy(mensaje, partida[pos].showBoard().c_str());
@@ -926,31 +969,35 @@ int main ( )
                                             //ROBAR FICHA
                                             else if (strstr(buffer,"ROBAR-FICHA\n") != NULL)
                                             {
-												printf("Entro en robar-ficha\n");
 
 												// Obtenemos la partida en la que jugaba el cliente
 												pos = arrayClientes[clienteX].inGame;
 
 												if(canPutPiece(i, partida[pos])){
-													strcpy(mensaje, "-ERR. Comando denegado. Tienes fichas disponibles para colocar.\n\n");
+													strcpy(mensaje, "+Ok. No es necesario robar ficha.\n\n");
 	                                                send(i, mensaje, strlen(mensaje), 0);
 													break;
 												}
 												else{
-													printf("No tienes fichas para poner\n");
 													if(partida[pos].isForStoleEmpty()){
-														strcpy(mensaje, "-ERR. Comando denegado. No quedan fichas para robar.\n\n");
+														strcpy(mensaje, "-ERR. No quedan fichas para robar.\n\n");
 		                                                send(i, mensaje, strlen(mensaje), 0);
 														break;
 													}
 													else{
-														partida[pos].addToHand(i, partida[pos].stealPiece());
-														printf("He robado ficha\n");
+														auxFicha = partida[pos].stealPiece();
+														partida[pos].addToHand(i, auxFicha);
 													}
 												}
 
+												//Se informa de la ficha robada
+												auxstr = "FICHA\t";
+												auxstr = auxstr + "|" + std::to_string(auxFicha.left) + "|" + std::to_string(auxFicha.right) + "|\n\n";
+												strcpy(mensaje, auxstr.c_str());
+												send(i, mensaje, strlen(mensaje), 0);
+
 												//Se informa del estado de la partida
-												strcpy(mensaje, "Ficha robada. Continúa el mismo jugador.\n\n");
+												strcpy(mensaje, "+Ok. Ficha robada. Continúa el mismo jugador.\n\n");
 												send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
 												send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 
@@ -973,28 +1020,45 @@ int main ( )
                                             //PASO TURNO
                                             else if (strstr(buffer,"PASO-TURNO\n") != NULL)
                                             {
-                                                printf("Entro en paso-turno\n");
-
-												// Obtenemos la partida en la que jugaba el cliente
+                                                // Obtenemos la partida en la que jugaba el cliente
 												pos = arrayClientes[clienteX].inGame;
 
 												//Si tienes fichas para colocar no puedes pasar turno
 												if(canPutPiece(i, partida[pos])){
-													strcpy(mensaje, "-ERR. Comando denegado. Tienes fichas disponibles para colocar.\n\n");
+													strcpy(mensaje, "+Ok. No es necesario pasar turno.\n\n");
 													send(i, mensaje, strlen(mensaje), 0);
 													break;
 												}
 												//Si aun quedan fichas para robar no se puede pasar turno
 												else if (!(partida[pos].isForStoleEmpty())) {
-													strcpy(mensaje, "-ERR. Comando denegado. Hay fichas disponibles para robar.\n\n");
+													strcpy(mensaje, "+Ok. No es necesario pasar turno.\n\n");
 													send(i, mensaje, strlen(mensaje), 0);
 													break;
 												}
+												//Si el otro jugador tampoco puede poner la partida esta cerrada
+												else if (i == partida[pos].getSocketP1()) {
+													if (!(canPutPiece(partida[pos].getSocketP2(), partida[pos]))) {
+														partida[pos].partidaCerrada();
+													}
+												}
+												else if (i == partida[pos].getSocketP2()) {
+													if (!(canPutPiece(partida[pos].getSocketP1(), partida[pos]))) {
+														partida[pos].partidaCerrada();
+													}
+												}
 												else{
 	                                                //Se informa de paso de turno
-	                                                strcpy(mensaje, "El jugador pasa turno. Cambio de turno.\n\n");
-	                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-	                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+													if(i == partida[pos].getSocketP1()){
+														strcpy(mensaje, "+Ok. Turno de partida.\n\n");
+		                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+													}
+													else if (i == partida[pos].getSocketP2()) {
+														strcpy(mensaje, "+Ok. Turno de partida.\n\n");
+		                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+													}
+													else{
+														printf("-ERR. Comando PASO-TURNO inválido: Jugador no reconocido.");
+													}
 
 	                                                // Enviamos el tablero
 	                                                strcpy(mensaje, partida[pos].showBoard().c_str());
@@ -1077,7 +1141,7 @@ int main ( )
                                             //COMANDO NO RECONOCIDO -- Se le recuerda al jugador qué puede hacer
                                             else{
                                                 bzero(buffer, sizeof(buffer));
-                                                strcpy(buffer, "Estado 4. Toca colocar...\n");
+                                                strcpy(buffer, "-ERR. Comando inválido. (Comandos válidos: COLOCAR-FICHA <|valor·valor|>,<extremo>; ROBAR-FICHA; PASO-TURNO). Es tu turno...\n");
                                                 send(i, buffer, strlen(buffer), 0);
                                             }
 
@@ -1092,7 +1156,7 @@ int main ( )
                             //Si el cliente introdujo ctrl+c
                             if(recibidos== 0)
                             {
-                                printf("El socket %d, ha introducido ctrl+c\n", i);
+                                printf("+Ok. El socket %d, ha introducido ctrl+c\n", i);
                                 //Eliminar ese socket
                                 salirCliente(i,&readfds,&numClientes,arrayClientes);
                             }
@@ -1127,7 +1191,7 @@ void salirCliente(int socket, fd_set * readfds, int * numClientes, std::vector<c
     /*----------------------------------------------------------
 
     bzero(buffer,sizeof(buffer));
-    sprintf(buffer,"Desconexión del cliente: %d\n",socket);
+    sprintf(buffer,"+Ok. Desconexión del cliente: %d\n",socket);
 
     for(j=0; j<(*numClientes); j++)
         if(arrayClientes[j].sd != socket)
@@ -1139,7 +1203,7 @@ void salirCliente(int socket, fd_set * readfds, int * numClientes, std::vector<c
 
 
 void manejador (int signum){
-    printf("\nSe ha recibido la señal sigint\n");
+    printf("\n+Ok. Se ha recibido la señal sigint\n");
     signal(SIGINT,manejador);
 
     //Implementar lo que se desee realizar cuando ocurra la excepción de ctrl+c en el servidor

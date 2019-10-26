@@ -92,10 +92,10 @@ int main (int argc, char const *argv[])
 
             //printf("\n%s\n",buffer);
 
-            if(strcmp(buffer,"Demasiados clientes conectados\n") == 0)
+            if(strcmp(buffer,"-ERR. Demasiados clientes conectados\n") == 0)
                 fin =1;
 
-            if(strcmp(buffer,"Desconexion servidor\n") == 0)
+            if(strcmp(buffer,"-ERR. Desconexion servidor\n") == 0)
                 fin =1;
 
             if(strcmp(buffer, "+Ok. Desconexión procesada\n") == 0)

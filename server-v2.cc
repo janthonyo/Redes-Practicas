@@ -15,7 +15,7 @@
 
 
 #define MSG_SIZE 250
-#define MAX_CLIENTS 50
+#define MAX_CLIENTS 30
 #define MAX_GAMES 10
 
 
@@ -58,6 +58,8 @@ int main ( )
 
     std::vector<domino> partida;
     partida.resize(MAX_GAMES);
+
+    std::vector<int> lista_espera;
 
     int numClientes = 0;
     int numPartidas = 0;
@@ -181,6 +183,7 @@ int main ( )
                                 if(numClientes < MAX_CLIENTS){
                                     arrayClientes[numClientes].sd = new_sd;
                                     arrayClientes[numClientes].status = 0;
+                                    arrayClientes[numClientes].inGame = -1;
                                     numClientes++;
                                     FD_SET(new_sd,&readfds);
 
@@ -228,13 +231,6 @@ int main ( )
 
                             if(recibidos > 0){
 
-                                if(strcmp(buffer,"SALIR\n") == 0){
-
-                                    salirCliente(i,&readfds,&numClientes,arrayClientes);
-
-                                }
-                                else{
-
                                     for(j=0; j<numClientes; j++)
                                         if(arrayClientes[j].sd == i)
                                         {
@@ -250,7 +246,7 @@ int main ( )
                                     {
                                         //login / registro
                                         case 0:                 // TERMINADO
-                                            if( strstr(buffer, "USUARIO" ) != NULL )
+                                            if( strstr(buffer, "USUARIO " ) != NULL )
                                             {
                                                 // Sacamos la cadena USUARIO
                                                 aux = strtok(buffer, " ");
@@ -282,7 +278,7 @@ int main ( )
 
                                             }
 
-                                            else if ( strstr(buffer, "REGISTRO" ) != NULL )
+                                            else if ( strstr(buffer, "REGISTRO " ) != NULL )
                                             {
                                                 aux = strtok(buffer, " ");
 
@@ -331,6 +327,15 @@ int main ( )
                                                 }
                                             }
 
+                                            else if(strcmp(buffer,"SALIR\n") == 0)
+                                            {
+                                                    bzero(buffer, sizeof(buffer));
+                                                    strcpy(buffer, "+Ok. Desconexión procesada\n");
+                                                    send(i, buffer, strlen(buffer), 0);
+                                                    
+                                                    salirCliente(i,&readfds,&numClientes,arrayClientes);
+                                            }
+
                                             else
                                             {
                                                 // Mandamos un mensaje al usuario para recordarle que hace en este
@@ -344,7 +349,7 @@ int main ( )
 
                                         // Password
                                         case 1:                 // TERMINADO
-                                            if( strstr(buffer, "PASSWORD" ) != NULL )
+                                            if( strstr(buffer, "PASSWORD " ) != NULL )
                                             {
                                                 // Sacamos la cadena PASSWORD
                                                 aux = strtok(buffer, " ");
@@ -372,6 +377,17 @@ int main ( )
                                                     strcpy(buffer, "-ERR. Error en la validacion\n");
                                                     send(i, buffer, strlen(buffer), 0);
                                                 }
+                                            }
+
+                                            else if(strcmp(buffer,"SALIR\n") == 0)
+                                            {
+
+                                                bzero(buffer, sizeof(buffer));
+                                                strcpy(buffer, "+Ok. Desconexión procesada\n");
+                                                send(i, buffer, strlen(buffer), 0);
+                                                
+                                                salirCliente(i,&readfds,&numClientes,arrayClientes);
+
                                             }
 
                                             else
@@ -408,6 +424,12 @@ int main ( )
 
                                                         // QUEDA: controlar el orden de entrada de los jugadores que no
                                                         //        pueden entrar de momento
+
+                                                        // Guardamos en lista de espera el socket del usuario
+                                                        if(!userInWaitList(i, lista_espera))
+                                                        {
+                                                            lista_espera.push_back(i);
+                                                        }
                                                     }
 
                                                     // pos = x: -> Indica cual es la partida asignada al jugador (x)
@@ -572,6 +594,38 @@ int main ( )
                                                 }
                                             }
 
+                                            else if(strcmp(buffer,"SALIR\n") == 0)
+                                            {
+                                                // El usuario tiene asignada una partida
+                                                if(arrayClientes[clienteX].inGame != -1)
+                                                {
+                                                    // Sacamos que partida tiene asignada
+                                                    pos = arrayClientes[clienteX].inGame;
+
+                                                    // Si esta en el estado 2 y ha iniciado partida, solo
+                                                    // podra haber un jugador en la partida. Por lo que miramos
+                                                    // si se trata del jugador 1 o del 2.
+
+                                                    if(partida[pos].hasPlayer1())
+                                                    {
+                                                        partida[pos].setSocket1(-1);
+                                                    }
+
+                                                    else
+                                                    {
+                                                        partida[pos].setSocket2(-1);
+                                                    }
+                                                }
+
+                                                // El usuario todavia no ha iniciado partida o ya no la tiene
+                                            
+                                                bzero(buffer, sizeof(buffer));
+                                                strcpy(buffer, "+Ok. Desconexión procesada\n");
+                                                send(i, buffer, strlen(buffer), 0);
+
+                                                salirCliente(i,&readfds,&numClientes,arrayClientes);
+                                            }
+
                                             else
                                             {
                                                 // Mandamos un mensaje al usuario para recordarle que hace en este
@@ -585,9 +639,70 @@ int main ( )
 
                                         // Esperando turno
                                         case 3:                 // POR HACER
-                                            bzero(buffer, sizeof(buffer));
-                                            strcpy(buffer, "Estado 3. Esperando turno...\n");
-                                            send(i, buffer, strlen(buffer), 0);
+                                            if(strstr(buffer, "SALIR\n") != NULL)
+                                            {
+                                                // Obtenemos la partida en la que jugaba el cliente
+                                                pos = arrayClientes[clienteX].inGame;
+
+                                                // Mandamos el mensaje de partida anulada a los jugadores
+                                                bzero(buffer, sizeof(buffer));
+                                                strcpy(buffer, "+Ok. La partida ha sido anulada.\n\n");
+                                                send(partida[pos].getSocketP1(), buffer, strlen(buffer), 0);
+                                                send(partida[pos].getSocketP2(), buffer, strlen(buffer), 0);
+
+                                                // Comprobamos cual es el jugador que NO sale
+                                                if(arrayClientes[clienteX].sd == partida[pos].getSocketP1())
+                                                {
+                                                    //std::cout << "Sale J1\n";
+                                                    for( j = 0; j < numClientes; j++)
+                                                    {
+                                                        if(arrayClientes[j].sd == partida[pos].getSocketP2())
+                                                        {
+                                                            // Cambiamos el estado para que pueda iniciar otra partida
+                                                            //std::cout << "Cambio estado de J2\n";
+                                                            arrayClientes[j].status = 2;
+                                                        }
+                                                    }
+                                                }
+
+                                                else if(arrayClientes[clienteX].sd == partida[pos].getSocketP2())
+                                                {
+                                                    //std::cout << "Sale J2\n";
+                                                    for( j = 0; j < numClientes; j++)
+                                                    {
+                                                        if(arrayClientes[j].sd == partida[pos].getSocketP1())
+                                                        {
+                                                            // Cambiamos el estado para que pueda iniciar otra partida
+                                                            //std::cout << "Cambio estado de J1\n";
+                                                            arrayClientes[j].status = 2;
+
+                                                        }
+                                                    }
+                                                }
+
+                                                else
+                                                {
+                                                    std::cout << "Esto no deberia de pasar....\n";
+                                                }
+
+                                                // Borramos la informacion del cliente que sale
+                                                bzero(buffer, sizeof(buffer));
+                                                strcpy(buffer, "+Ok. Desconexión procesada\n");
+                                                send(i, buffer, strlen(buffer), 0);
+
+                                                salirCliente(i,&readfds,&numClientes,arrayClientes);
+
+                                                // Limpiamos el tablero
+                                                partida[pos].emptyBoard();
+                                            }
+
+                                            else
+                                            {
+                                                bzero(buffer, sizeof(buffer));
+                                                strcpy(buffer, "Estado 3. Esperando turno...\n");
+                                                send(i, buffer, strlen(buffer), 0);
+                                            }
+
                                         break;
 
                                         // Turno de colocar
@@ -801,7 +916,57 @@ int main ( )
 												}
                                             }
 
+                                            if(strstr(buffer, "SALIR\n") != NULL)
+                                            {
+                                                // Obtenemos la partida en la que jugaba el cliente
+                                                pos = arrayClientes[clienteX].inGame;
 
+                                                // Mandamos el mensaje de partida anulada a los jugadores
+                                                bzero(buffer, sizeof(buffer));
+                                                strcpy(buffer, "+Ok. La partida ha sido anulada.\n\n");
+                                                send(partida[pos].getSocketP1(), buffer, strlen(buffer), 0);
+                                                send(partida[pos].getSocketP2(), buffer, strlen(buffer), 0);
+
+                                                // Comprobamos cual es el jugador que NO sale
+                                                if(arrayClientes[clienteX].sd == partida[pos].getSocketP1())
+                                                {
+                                                    for( j = 0; j < numClientes; j++)
+                                                    {
+                                                        if(arrayClientes[j].sd == partida[pos].getSocketP2())
+                                                        {
+                                                            // Cambiamos el estado para que pueda iniciar otra partida
+                                                            arrayClientes[j].status = 2;
+                                                        }
+                                                    }
+                                                }
+
+                                                else if(arrayClientes[clienteX].sd == partida[pos].getSocketP2())
+                                                {
+                                                    for( j = 0; j < numClientes; j++)
+                                                    {
+                                                        if(arrayClientes[j].sd == partida[pos].getSocketP1())
+                                                        {
+                                                            // Cambiamos el estado para que pueda iniciar otra partida
+                                                            arrayClientes[j].status = 2;
+                                                        }
+                                                    }
+                                                }
+
+                                                else
+                                                {
+                                                    std::cout << "Esto no deberia de pasar....\n";
+                                                }
+
+                                                // Borramos la informacion del cliente que sale
+                                                bzero(buffer, sizeof(buffer));
+                                                strcpy(buffer, "+Ok. Desconexión procesada\n");
+                                                send(i, buffer, strlen(buffer), 0);
+
+                                                salirCliente(i,&readfds,&numClientes,arrayClientes);
+
+                                                // Limpiamos el tablero
+                                                partida[pos].emptyBoard();
+                                            }
 
                                             //COMANDO NO RECONOCIDO -- Se le recuerda al jugador qué puede hacer
                                             else{
@@ -814,7 +979,7 @@ int main ( )
 
                                     }
 
-                                }
+                                
 
 
                             }

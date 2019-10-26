@@ -49,7 +49,7 @@ int main ( )
 	-------------------------------------------------------------------*/
 	sockname.sin_family = AF_INET;
 	sockname.sin_port = htons(2050);
-	sockname.sin_addr.s_addr =  inet_addr("192.168.1.131");
+	sockname.sin_addr.s_addr =  inet_addr("127.0.0.1");
 
 	/* ------------------------------------------------------------------
 		Se solicita la conexión con el servidor
@@ -92,6 +92,9 @@ int main ( )
             if(strcmp(buffer,"Desconexion servidor\n") == 0)
                 fin =1;
 
+            if(strcmp(buffer, "+Ok. Desconexión procesada\n") == 0)
+                fin =1;
+
             //Formatea de forma bonita las fichas
             numbers_len = 0;
             for (int i = 0; i < strlen(buffer); i++) {
@@ -127,10 +130,12 @@ int main ( )
 
                 fgets(buffer,sizeof(buffer),stdin);
 
+                /*
                 if(strcmp(buffer,"SALIR\n") == 0){
                         fin = 1;
 
                 }
+                */
 
                 send(sd,buffer,sizeof(buffer),0);
 

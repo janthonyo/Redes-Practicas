@@ -197,3 +197,18 @@ bool canPutPiece(int i, domino& game)
 
     return false;
 }
+
+
+bool userInWaitList(int sd, std::vector <int> waitList)
+{
+	bool result = false;
+
+	for(int i = 0; i < (int) waitList.size(); i++)
+	{
+		if(waitList[i] == sd)
+			result = true;
+		
+	}
+
+	return result;
+}

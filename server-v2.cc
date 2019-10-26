@@ -332,7 +332,7 @@ int main ( )
                                                     bzero(buffer, sizeof(buffer));
                                                     strcpy(buffer, "+Ok. Desconexión procesada\n");
                                                     send(i, buffer, strlen(buffer), 0);
-                                                    
+
                                                     salirCliente(i,&readfds,&numClientes,arrayClientes);
                                             }
 
@@ -385,7 +385,7 @@ int main ( )
                                                 bzero(buffer, sizeof(buffer));
                                                 strcpy(buffer, "+Ok. Desconexión procesada\n");
                                                 send(i, buffer, strlen(buffer), 0);
-                                                
+
                                                 salirCliente(i,&readfds,&numClientes,arrayClientes);
 
                                             }
@@ -618,7 +618,7 @@ int main ( )
                                                 }
 
                                                 // El usuario todavia no ha iniciado partida o ya no la tiene
-                                            
+
                                                 bzero(buffer, sizeof(buffer));
                                                 strcpy(buffer, "+Ok. Desconexión procesada\n");
                                                 send(i, buffer, strlen(buffer), 0);
@@ -638,7 +638,7 @@ int main ( )
                                         break;
 
                                         // Esperando turno
-                                        case 3:                 // POR HACER
+                                        case 3:                 // CREO QUE ACABADO
                                             if(strstr(buffer, "SALIR\n") != NULL)
                                             {
                                                 // Obtenemos la partida en la que jugaba el cliente
@@ -706,11 +706,12 @@ int main ( )
                                         break;
 
                                         // Turno de colocar
-                                        case 4:                 // POR HACER
+                                        case 4:                 // ACABADO
                                              //COLOCAR FICHA
                                             if(strstr(buffer,"COLOCAR-FICHA") != NULL)
                                             {
                                                 printf("Entro en colocar ficha\n");
+
                                                 //Sacamos "COLOCAR-FICHA" del buffer
                                                 aux = strtok(buffer, " ,");
 
@@ -724,16 +725,16 @@ int main ( )
                                                         if(contNum < 2){
                                                             // "- '0'" sirve para pasar de char a int el contenido de aux
                                                             valorFicha[contNum] = (aux[l]) - '0';
-                                                            contNum++;
                                                         }
-                                                        else{   //Si el comando lleva más de 2 valores numericos
-                                                            bzero(buffer, sizeof(buffer));
-                                                            strcpy(buffer, "-ERR. Comando colocación de ficha inválido: Ficha inválida.\n");
-                                                            send(i, buffer, strlen(buffer), 0);
-                                                            break;
-                                                        }
+														contNum++;
                                                     }
                                                 }
+												if(contNum != 2){   //Si el comando no lleva exactamente 2 valores numéricos
+													bzero(buffer, sizeof(buffer));
+													strcpy(buffer, "-ERR. Comando colocación de ficha inválido: Ficha inválida.\n");
+													send(i, buffer, strlen(buffer), 0);
+													break;
+												}
 
                                                 extremo = strtok(NULL, " ,");   //El extremo entra en aux
                                                 //AQUI
@@ -752,14 +753,48 @@ int main ( )
                                                 auxFicha.left = valorFicha[0];
                                                 auxFicha.right = valorFicha[1];
 
+												// Obtenemos la partida en la que jugaba el cliente
+												pos = arrayClientes[clienteX].inGame;
+
                                                 //Se coloca la ficha y se borra de la mano del jugador
                                                 //partida[pos].hasFicha(auxFicha, partida[pos].getHand1())
-                                                if(i == partida[pos].getSocketP1()){    //Se compruba que si P1, ha jugado la ficha
+                                                if(i == partida[pos].getSocketP1()){    //Se comprueba si P1, ha jugado la ficha
                                                     if (partida[pos].hasFicha(auxFicha, partida[pos].getHand1()))    //Se comprueba que tenga dicha ficha
                                                     {
-                                                        partida[pos].putInBoard(auxFicha);
-                                                        partida[pos].quitPieceJ1(auxFicha);
+														if (strcmp( extremo, "izquierda\n") == 0)
+														{
+															//Si la ficha se puede coloca, se coloca y se le quita de la mano
+															if (partida[pos].putInBoardLeft(auxFicha)) {
+																partida[pos].quitPieceJ1(auxFicha);
+															}
+															else{
+																bzero(buffer, sizeof(buffer));
+																strcpy(buffer, "-ERR. Comando colocación de ficha inválido: Imposible colocar la ficha en ese extremo.\n");
+																send(i, buffer, strlen(buffer), 0);
+																break;
+															}
+														}
+
+														else if (strcmp( extremo, "derecha\n") == 0)
+														{
+															//Si la ficha se puede coloca, se coloca y se le quita de la mano
+															if (partida[pos].putInBoardRight(auxFicha)) {
+																partida[pos].quitPieceJ1(auxFicha);
+															}
+															else{
+																bzero(buffer, sizeof(buffer));
+																strcpy(buffer, "-ERR. Comando colocación de ficha inválido: Imposible colocar la ficha en ese extremo.\n");
+																send(i, buffer, strlen(buffer), 0);
+																break;
+															}
+														}
+
+														else
+														{
+															printf("Caso imposible 1, esto no deberia pasar\n");
+														}
                                                     }
+
                                                     else{
                                                         bzero(buffer, sizeof(buffer));
                                                         strcpy(buffer, "-ERR. Comando colocación de ficha inválido: Ficha no disponible.\n");
@@ -770,8 +805,38 @@ int main ( )
                                                 else if(i == partida[pos].getSocketP2()){   //O si ha sido P2
                                                     if (partida[pos].hasFicha(auxFicha, partida[pos].getHand2()))    //Se comprueba que tenga dicha ficha
                                                     {
-                                                        partida[pos].putInBoard(auxFicha);
-                                                        partida[pos].quitPieceJ2(auxFicha);
+														if (strcmp( extremo, "izquierda\n") == 0)
+														{
+															//Si la ficha se puede coloca, se coloca y se le quita de la mano
+															if (partida[pos].putInBoardLeft(auxFicha)) {
+																partida[pos].quitPieceJ2(auxFicha);
+															}
+															else{
+																bzero(buffer, sizeof(buffer));
+																strcpy(buffer, "-ERR. Comando colocación de ficha inválido: Imposible colocar la ficha en ese extremo.\n");
+																send(i, buffer, strlen(buffer), 0);
+																break;
+															}
+														}
+
+														else if (strcmp( extremo, "derecha\n") == 0)
+														{
+															//Si la ficha se puede coloca, se coloca y se le quita de la mano
+															if (partida[pos].putInBoardRight(auxFicha)) {
+																partida[pos].quitPieceJ2(auxFicha);
+															}
+															else{
+																bzero(buffer, sizeof(buffer));
+																strcpy(buffer, "-ERR. Comando colocación de ficha inválido: Imposible colocar la ficha en ese extremo.\n");
+																send(i, buffer, strlen(buffer), 0);
+																break;
+															}
+														}
+
+														else
+														{
+															printf("Caso imposible 2, esto no deberia pasar\n");
+														}
                                                     }
                                                     else{
                                                         bzero(buffer, sizeof(buffer));
@@ -835,6 +900,9 @@ int main ( )
                                             {
 												printf("Entro en robar-ficha\n");
 
+												// Obtenemos la partida en la que jugaba el cliente
+												pos = arrayClientes[clienteX].inGame;
+
 												if(canPutPiece(i, partida[pos])){
 													strcpy(mensaje, "-ERR. Comando denegado. Tienes fichas disponibles para colocar.\n\n");
 	                                                send(i, mensaje, strlen(mensaje), 0);
@@ -879,6 +947,9 @@ int main ( )
                                             {
                                                 printf("Entro en paso-turno\n");
 
+												// Obtenemos la partida en la que jugaba el cliente
+												pos = arrayClientes[clienteX].inGame;
+
 												//Si tienes fichas para colocar no puedes pasar turno
 												if(canPutPiece(i, partida[pos])){
 													strcpy(mensaje, "-ERR. Comando denegado. Tienes fichas disponibles para colocar.\n\n");
@@ -916,7 +987,7 @@ int main ( )
 												}
                                             }
 
-                                            if(strstr(buffer, "SALIR\n") != NULL)
+                                            else if(strstr(buffer, "SALIR\n") != NULL)
                                             {
                                                 // Obtenemos la partida en la que jugaba el cliente
                                                 pos = arrayClientes[clienteX].inGame;
@@ -979,7 +1050,7 @@ int main ( )
 
                                     }
 
-                                
+
 
 
                             }

@@ -303,6 +303,72 @@ public:
 		return inserted;
 	}
 
+	bool putInBoardLeft(ficha f)
+	{
+		//Estructura ficha auxiliar para "girar" la ficha
+		ficha aux;
+		bool inserted = false;
+
+		/*No hace falta considerar el caso con tablero vacio, ya que nunca se
+		  va a llamar a esta funcion en esa situacion.*/
+
+		//Se comprueba si la ficha se puede colocar en el extremo inicial.
+		if((first == f.left) or (first == f.right))
+		{
+			if( f.left == first )
+			{
+				setFirst(f.right);
+				aux.left = f.right;
+				aux.right = f.left;
+				board.insert(board.begin(), aux);
+			}
+
+			else
+			{
+				setFirst(f.left);
+				board.insert(board.begin(), f);
+			}
+
+			inserted = true;
+		}
+
+		//Si no, se devuelve false (valor inicial de inserted)
+		return inserted;
+	}
+
+	bool putInBoardRight(ficha f)
+	{
+		//Estructura ficha auxiliar para "girar" la ficha
+		ficha aux;
+		bool inserted = false;
+
+		/*No hace falta considerar el caso con tablero vacio, ya que nunca se
+		  va a llamar a esta funcion en esa situacion.*/
+
+		  //Se comprueba si la ficha se puede colocar en el extremo final.
+  		if((last == f.left) or (last == f.right))
+  		{
+  			if( f.left == last )
+  			{
+  				setLast(f.right);
+  				board.push_back(f);
+  			}
+
+  			else
+  			{
+  				setLast(f.left);
+  				aux.left = f.right;
+  				aux.right = f.left;
+  				board.push_back(aux);
+  			}
+
+  			inserted = true;
+  		}
+
+		//Si no, se devuelve false (valor inicial de inserted)
+		return inserted;
+	}
+
 
 	int startPlayer()
 	{

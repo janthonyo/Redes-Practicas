@@ -67,7 +67,7 @@ int main ( )
     int i,j,k;
 	int recibidos;
     char identificador[MSG_SIZE];
-    int contNum = 0;
+    int contNum = 0, contCoincidencias = 0;
 
     // Cadenas auxiliares
     char *aux;
@@ -278,6 +278,23 @@ int main ( )
                                                     send(i, buffer, strlen(buffer), 0);
                                                 }
 
+												//Se comprueba que ese cliente no esté ya conectado
+												contCoincidencias = 0;
+												for (int l = 0; l < numClientes; l++) {
+													if(strcmp(arrayClientes[l].user, arrayClientes[clienteX].user) == 0){//aqui
+														contCoincidencias++;
+														printf("Numcoin %d\n", contCoincidencias);
+													}
+												}
+												if (contCoincidencias != 1) {
+													bzero(buffer, sizeof(buffer));
+													strcpy(buffer, "-ERR. Usuario inválido: Dicho usuario ya está conectado.\n");
+													send(i, buffer, strlen(buffer), 0);
+													strcpy(arrayClientes[clienteX].user, "");
+													arrayClientes[clienteX].status = 0;
+													break;
+												}
+
                                             }
 
                                             else if ( strstr(buffer, "REGISTRO " ) != NULL )
@@ -363,8 +380,7 @@ int main ( )
 
                                                 if( verifyPassword(arrayClientes[clienteX].user, aux))
                                                 {
-                                                    // Guardamos la passwd del cliente
-
+													// Guardamos la passwd del cliente
                                                     strcpy(arrayClientes[clienteX].passwd, aux);
 
                                                     bzero(buffer, sizeof(buffer));

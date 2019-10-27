@@ -191,10 +191,6 @@ bool canPutPiece(int i, domino& game)
         }
     }
 
-    else{
-        printf("Error - Este caso no deberia ocurrir nunca.\n");
-    }
-
     return false;
 }
 
@@ -207,7 +203,7 @@ bool userInWaitList(int sd, std::vector <int> waitList)
 	{
 		if(waitList[i] == sd)
 			result = true;
-		
+
 	}
 
 	return result;
@@ -244,22 +240,16 @@ void waitListGame(std::vector <int> &lista_espera, std::vector<domino> &partida,
 	char buffer[250];
 	char mensaje[250];
 
-    //std::cout << (*numPartidas) << " partidas en funcion\n";
-
 
 	// Si solo hay un jugador en la lista
 	if (size_lista == 1)
 	{
-		//std::cout << "1 Jugador en espera.\n";
-		//std::cout << "Valor lista de espera: " << lista_espera[0] << "\n";
 
 		for (int i = 0; i < numClientes; i++)
 		{
-			//std::cout << "sd: " << arrayClientes[i].sd << "\n";
 
 			if (arrayClientes[i].sd == lista_espera[0])
 			{
-				//std::cout << "Asigno jugador.\n";
 
 				// Establecemos al usuario en partida
 				partida[pos].setPlayer1(arrayClientes[i].user);
@@ -276,13 +266,12 @@ void waitListGame(std::vector <int> &lista_espera, std::vector<domino> &partida,
 				// Borramos al usuario de la lista de espera
 				lista_espera.erase(lista_espera.begin());
 			}
-		}		
+		}
 	}
 
 	// Mas de un jugador en la lista
 	else if (size_lista >= 2)
 	{
-		//std::cout << "2 o + Jugadores en espera.\n";
 
 		// Buscamos los clientes en el arrayClientes para asignar los datos
 		for (int i = 0; i< numClientes; i++)
@@ -419,4 +408,3 @@ void waitListGame(std::vector <int> &lista_espera, std::vector<domino> &partida,
 
 	// Si la lista esta vacia o ya se han hecho las operaciones, no se hace nada mas
 }
-

@@ -90,7 +90,6 @@ int main (int argc, char const *argv[])
             bzero(buffer,sizeof(buffer));
             recv(sd,buffer,sizeof(buffer),0);
 
-            //printf("\n%s\n",buffer);
 
             if(strcmp(buffer,"-ERR. Demasiados clientes conectados\n") == 0)
                 fin =1;
@@ -100,7 +99,6 @@ int main (int argc, char const *argv[])
 
             if(strcmp(buffer, "+Ok. Desconexion procesada\n") == 0)
             {
-                //printf("\n------------------> Salgo\n");
                 fin =1;
             }
 
@@ -136,18 +134,8 @@ int main (int argc, char const *argv[])
             que quiere escoger, este se manda al servidor y él lo interpreta.)*/
             if(FD_ISSET(0,&auxfds)){
                 bzero(buffer,sizeof(buffer));
-
                 fgets(buffer,sizeof(buffer),stdin);
-
-                /*
-                if(strcmp(buffer,"SALIR\n") == 0){
-                        fin = 1;
-
-                }
-                */
-
                 send(sd,buffer,sizeof(buffer),0);
-
             }
 
 

@@ -197,8 +197,6 @@ public:
 				aux.left = i;
 				aux.right = j;
 				forStole.push_back(aux);
-
-				//std::cout << "|" << aux.left << " · " << aux.right << "|\n";
 			}
 		}
 	}
@@ -506,9 +504,6 @@ public:
 			strcpy(mensaje, "+Ok. Partida Finalizada. Jugador1 ha ganado la partida.\n\n");
 			send(getSocketP1(), mensaje, strlen(mensaje), 0);
 			send(getSocketP2(), mensaje, strlen(mensaje), 0);
-			//Se informa al servidor también
-			printf("+Ok. Partida finalizada\n");
-			//exit(1);
 		}
 		else if (total2 < total1) {
 			strcpy(mensaje, "+Ok. Partida cerrada.\n");
@@ -517,9 +512,6 @@ public:
 			strcpy(mensaje, "+Ok. Partida Finalizada. Jugador2 ha ganado la partida.\n\n");
 			send(getSocketP1(), mensaje, strlen(mensaje), 0);
 			send(getSocketP2(), mensaje, strlen(mensaje), 0);
-			//Se informa al servidor también
-			printf("+Ok. Partida finalizada\n");
-			//exit(2);
 		}
 		else{
 			strcpy(mensaje, "+Ok. Partida cerrada.\n");
@@ -528,9 +520,6 @@ public:
 			strcpy(mensaje, "+Ok. Partida Finalizada. Ambos jugadores tienen la misma cantidad de puntos. Es un empate.\n\n");
 			send(getSocketP1(), mensaje, strlen(mensaje), 0);
 			send(getSocketP2(), mensaje, strlen(mensaje), 0);
-			//Se informa al servidor también
-			printf("+Ok. Partida finalizada\n");
-			//exit(0);
 		}
 	}
 

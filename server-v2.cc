@@ -1038,7 +1038,7 @@ int main ( )
 													if (!(canPutPiece(partida[pos].getSocketP2(), partida[pos]))) {
 														partida[pos].partidaCerrada();
 
-// ----> COMPROBAR                                      // (J.A.) Gestionamos los estados de los jugadores
+                                                        // (J.A.) Gestionamos los estados de los jugadores
                                                         managePostGame(partida, pos, arrayClientes, numClientes, &numPartidas);
 
                                                         // (J.A.) Comprobamos si hay jugadores en espera y los añadimos a la partida que queda libre
@@ -1050,7 +1050,7 @@ int main ( )
 													if (!(canPutPiece(partida[pos].getSocketP1(), partida[pos]))) {
 														partida[pos].partidaCerrada();
 
-// ----> COMPROBAR                                      // (J.A.) Gestionamos los estados de los jugadores
+                                                        // (J.A.) Gestionamos los estados de los jugadores
                                                         managePostGame(partida, pos, arrayClientes, numClientes, &numPartidas);
 
                                                         // (J.A.) Comprobamos si hay jugadores en espera y los añadimos a la partida que queda libre

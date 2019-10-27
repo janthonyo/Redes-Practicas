@@ -16,7 +16,7 @@
 
 #define MSG_SIZE 250
 #define MAX_CLIENTS 30
-#define MAX_GAMES 1
+#define MAX_GAMES 10
 
 
 /*

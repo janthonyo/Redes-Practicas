@@ -244,22 +244,22 @@ void waitListGame(std::vector <int> &lista_espera, std::vector<domino> &partida,
 	char buffer[250];
 	char mensaje[250];
 
-    std::cout << (*numPartidas) << " partidas en funcion\n";
+    //std::cout << (*numPartidas) << " partidas en funcion\n";
 
 
 	// Si solo hay un jugador en la lista
 	if (size_lista == 1)
 	{
-		std::cout << "1 Jugador en espera.\n";
-		std::cout << "Valor lista de espera: " << lista_espera[0] << "\n";
+		//std::cout << "1 Jugador en espera.\n";
+		//std::cout << "Valor lista de espera: " << lista_espera[0] << "\n";
 
 		for (int i = 0; i < numClientes; i++)
 		{
-			std::cout << "sd: " << arrayClientes[i].sd << "\n";
+			//std::cout << "sd: " << arrayClientes[i].sd << "\n";
 
 			if (arrayClientes[i].sd == lista_espera[0])
 			{
-				std::cout << "Asigno jugador.\n";
+				//std::cout << "Asigno jugador.\n";
 
 				// Establecemos al usuario en partida
 				partida[pos].setPlayer1(arrayClientes[i].user);
@@ -279,7 +279,7 @@ void waitListGame(std::vector <int> &lista_espera, std::vector<domino> &partida,
 	// Mas de un jugador en la lista
 	else if (size_lista >= 2)
 	{
-		std::cout << "2 o + Jugadores en espera.\n";
+		//std::cout << "2 o + Jugadores en espera.\n";
 
 		// Buscamos los clientes en el arrayClientes para asignar los datos
 		for (int i = 0; i< numClientes; i++)

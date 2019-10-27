@@ -16,7 +16,7 @@
 
 #define MSG_SIZE 250
 #define MAX_CLIENTS 30
-#define MAX_GAMES 1
+#define MAX_GAMES 10
 
 
 /*
@@ -309,7 +309,7 @@ int main ( )
                                                         user = strtok(NULL, " ");
 
                                                     if (strcmp( aux, "-p") == 0 )
-                                                        passwd = strtok(NULL, " ");
+                                                        passwd = strtok(NULL, "\n");
 
                                                     aux = strtok(NULL, " ");
                                                 }
@@ -335,7 +335,7 @@ int main ( )
                                                     strcpy(buffer, "+Ok. Usuario registrado correctamente\n");
                                                     send(i, buffer, strlen(buffer), 0);
 													//Se informa al servidor también
-													printf("+Ok. Nuevo usuario registrado\n");
+													//printf("+Ok. Nuevo usuario registrado\n");
 
                                                     arrayClientes[clienteX].status = 2;
                                                 }
@@ -450,7 +450,6 @@ int main ( )
                                                         // Guardamos en lista de espera el socket del usuario
                                                         if(!userInWaitList(i, lista_espera))
                                                         {
-                                                            std::cout << "A lista de espera\n";
                                                             lista_espera.push_back(i);
                                                         }
                                                     }
@@ -464,7 +463,7 @@ int main ( )
                                                         // Comprobamos que jugador falta en partida y lo establecemos.
                                                         if (!partida[pos].hasPlayer1())
                                                         {
-                                                            std::cout << "1\n";
+                                                            //std::cout << "1\n";
                                                             partida[pos].setPlayer1(arrayClientes[clienteX].user);
                                                             partida[pos].setSocket1(arrayClientes[clienteX].sd);
 
@@ -472,7 +471,7 @@ int main ( )
 
                                                         else
                                                         {
-                                                            std::cout << "2\n";
+                                                            //std::cout << "2\n";
                                                             partida[pos].setPlayer2(arrayClientes[clienteX].user);
                                                             partida[pos].setSocket2(arrayClientes[clienteX].sd);
 
@@ -636,7 +635,7 @@ int main ( )
                                                     // Guardamos en lista de espera el socket del usuario
                                                     if(!userInWaitList(i, lista_espera))
                                                     {
-                                                        std::cout << "A lista de espera: " << i << "\n";
+                                                        //std::cout << "A lista de espera: " << i << "\n";
                                                         lista_espera.push_back(i);
                                                     }
                                                 }
@@ -681,7 +680,7 @@ int main ( )
                                                 // estado.
 
                                                 bzero(buffer, sizeof(buffer));
-                                                strcpy(buffer, "> Introduzca INICIAR-PARTIDA para comenzar.\n");
+                                                strcpy(buffer, "-ERR. Introduzca INICIAR-PARTIDA para comenzar.\n");
                                                 send(i, buffer, strlen(buffer), 0);
                                             }
                                         break;
@@ -740,10 +739,7 @@ int main ( )
 
                                                 // Limpiamos el tablero
                                                 partida[pos].emptyBoard();
-
-                                                std::cout << numPartidas << " partidas\n";
                                                 numPartidas--;
-                                                std::cout << numPartidas << " partidas\n";
 
                                                 // Comprobamos la lista de espera y asignamos los jugadores si los hubiera
                                                 waitListGame(lista_espera, partida, pos, arrayClientes, numClientes, &numPartidas);
@@ -1039,11 +1035,24 @@ int main ( )
 												else if (i == partida[pos].getSocketP1()) {
 													if (!(canPutPiece(partida[pos].getSocketP2(), partida[pos]))) {
 														partida[pos].partidaCerrada();
+
+// ----> COMPROBAR                                      // (J.A.) Gestionamos los estados de los jugadores
+                                                        managePostGame(partida, pos, arrayClientes, numClientes, &numPartidas);
+
+                                                        // (J.A.) Comprobamos si hay jugadores en espera y los añadimos a la partida que queda libre
+                                                        waitListGame(lista_espera, partida, pos, arrayClientes, numClientes, &numPartidas);
+
 													}
 												}
 												else if (i == partida[pos].getSocketP2()) {
 													if (!(canPutPiece(partida[pos].getSocketP1(), partida[pos]))) {
 														partida[pos].partidaCerrada();
+
+// ----> COMPROBAR                                      // (J.A.) Gestionamos los estados de los jugadores
+                                                        managePostGame(partida, pos, arrayClientes, numClientes, &numPartidas);
+
+                                                        // (J.A.) Comprobamos si hay jugadores en espera y los añadimos a la partida que queda libre
+                                                        waitListGame(lista_espera, partida, pos, arrayClientes, numClientes, &numPartidas);
 													}
 												}
 												else{
@@ -1130,9 +1139,7 @@ int main ( )
 
                                                 // Limpiamos el tablero
                                                 partida[pos].emptyBoard();
-                                                std::cout << numPartidas << " partidas\n";                                                
                                                 numPartidas--;
-                                                std::cout << numPartidas << " partidas\n";
 
                                                 // Comprobamos la lista de espera y asignamos los jugadores si los hubiera
                                                 waitListGame(lista_espera, partida, pos, arrayClientes, numClientes, &numPartidas);

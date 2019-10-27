@@ -98,8 +98,11 @@ int main (int argc, char const *argv[])
             if(strcmp(buffer,"-ERR. Desconexion servidor\n") == 0)
                 fin =1;
 
-            if(strcmp(buffer, "+Ok. Desconexión procesada\n") == 0)
+            if(strcmp(buffer, "+Ok. Desconexion procesada\n") == 0)
+            {
+                //printf("\n------------------> Salgo\n");
                 fin =1;
+            }
 
             //Formatea de forma bonita las fichas
             numbers_len = 0;

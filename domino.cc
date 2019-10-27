@@ -508,7 +508,7 @@ public:
 			send(getSocketP2(), mensaje, strlen(mensaje), 0);
 			//Se informa al servidor también
 			printf("+Ok. Partida finalizada\n");
-			exit(1);
+			//exit(1);
 		}
 		else if (total2 < total1) {
 			strcpy(mensaje, "+Ok. Partida cerrada.\n");
@@ -519,7 +519,7 @@ public:
 			send(getSocketP2(), mensaje, strlen(mensaje), 0);
 			//Se informa al servidor también
 			printf("+Ok. Partida finalizada\n");
-			exit(2);
+			//exit(2);
 		}
 		else{
 			strcpy(mensaje, "+Ok. Partida cerrada.\n");
@@ -530,7 +530,7 @@ public:
 			send(getSocketP2(), mensaje, strlen(mensaje), 0);
 			//Se informa al servidor también
 			printf("+Ok. Partida finalizada\n");
-			exit(0);
+			//exit(0);
 		}
 	}
 

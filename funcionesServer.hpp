@@ -265,6 +265,9 @@ void waitListGame(std::vector <int> &lista_espera, std::vector<domino> &partida,
 				partida[pos].setPlayer1(arrayClientes[i].user);
 				partida[pos].setSocket1(arrayClientes[i].sd);
 
+				// Guardamos en el cliente la partida asignada
+				arrayClientes[i].inGame = pos;
+
 				// Mandamos un mensaje de que hemos encontrado una partida disponible
 				bzero(buffer, sizeof(buffer));
 				strcpy(buffer, "+Ok. Partida disponible. Quedamos a la espera de mas jugadores\n");
@@ -289,6 +292,9 @@ void waitListGame(std::vector <int> &lista_espera, std::vector<domino> &partida,
 				// Establecemos al usuario como J1 en partida
 				partida[pos].setPlayer1(arrayClientes[i].user);
 				partida[pos].setSocket1(arrayClientes[i].sd);
+
+				// Guardamos en el cliente la partida asignada
+				arrayClientes[i].inGame = pos;
 			}
 
 			else if (arrayClientes[i].sd == lista_espera[1])
@@ -296,6 +302,9 @@ void waitListGame(std::vector <int> &lista_espera, std::vector<domino> &partida,
 				// Establecemos al usuario como J2 en partida
 				partida[pos].setPlayer2(arrayClientes[i].user);
 				partida[pos].setSocket2(arrayClientes[i].sd);
+
+				// Guardamos en el cliente la partida asignada
+				arrayClientes[i].inGame = pos;
 			}
 		}
 

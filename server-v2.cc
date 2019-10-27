@@ -16,7 +16,7 @@
 
 #define MSG_SIZE 250
 #define MAX_CLIENTS 30
-#define MAX_GAMES 10
+#define MAX_GAMES 1
 
 
 /*
@@ -335,7 +335,7 @@ int main ( )
                                                     strcpy(buffer, "+Ok. Usuario registrado correctamente\n");
                                                     send(i, buffer, strlen(buffer), 0);
 													//Se informa al servidor también
-													//printf("+Ok. Nuevo usuario registrado\n");
+													printf("+Ok. Nuevo usuario registrado\n");
 
                                                     arrayClientes[clienteX].status = 2;
                                                 }
@@ -353,7 +353,7 @@ int main ( )
                                             else if(strcmp(buffer,"SALIR\n") == 0)
                                             {
                                                     bzero(buffer, sizeof(buffer));
-                                                    strcpy(buffer, "+Ok. Desconexión procesada\n");
+                                                    strcpy(buffer, "+Ok. Desconexion procesada\n");
                                                     send(i, buffer, strlen(buffer), 0);
 
                                                     salirCliente(i,&readfds,&numClientes,arrayClientes);
@@ -408,7 +408,7 @@ int main ( )
                                             {
 
                                                 bzero(buffer, sizeof(buffer));
-                                                strcpy(buffer, "+Ok. Desconexión procesada.\n");
+                                                strcpy(buffer, "+Ok. Desconexion procesada\n");
                                                 send(i, buffer, strlen(buffer), 0);
 
                                                 salirCliente(i,&readfds,&numClientes,arrayClientes);
@@ -463,7 +463,6 @@ int main ( )
                                                         // Comprobamos que jugador falta en partida y lo establecemos.
                                                         if (!partida[pos].hasPlayer1())
                                                         {
-                                                            //std::cout << "1\n";
                                                             partida[pos].setPlayer1(arrayClientes[clienteX].user);
                                                             partida[pos].setSocket1(arrayClientes[clienteX].sd);
 
@@ -471,7 +470,6 @@ int main ( )
 
                                                         else
                                                         {
-                                                            //std::cout << "2\n";
                                                             partida[pos].setPlayer2(arrayClientes[clienteX].user);
                                                             partida[pos].setSocket2(arrayClientes[clienteX].sd);
 
@@ -635,7 +633,6 @@ int main ( )
                                                     // Guardamos en lista de espera el socket del usuario
                                                     if(!userInWaitList(i, lista_espera))
                                                     {
-                                                        //std::cout << "A lista de espera: " << i << "\n";
                                                         lista_espera.push_back(i);
                                                     }
                                                 }
@@ -668,7 +665,7 @@ int main ( )
                                                 // El usuario todavia no ha iniciado partida o ya no la tiene
 
                                                 bzero(buffer, sizeof(buffer));
-                                                strcpy(buffer, "+Ok. Desconexión procesada\n");
+                                                strcpy(buffer, "+Ok. Desconexion procesada\n");
                                                 send(i, buffer, strlen(buffer), 0);
 
                                                 salirCliente(i,&readfds,&numClientes,arrayClientes);
@@ -714,7 +711,6 @@ int main ( )
 
                                                 else if(arrayClientes[clienteX].sd == partida[pos].getSocketP2())
                                                 {
-                                                    //std::cout << "Sale J2\n";
                                                     for( j = 0; j < numClientes; j++)
                                                     {
                                                         if(arrayClientes[j].sd == partida[pos].getSocketP1())
@@ -732,7 +728,7 @@ int main ( )
 
                                                 // Borramos la informacion del cliente que sale
                                                 bzero(buffer, sizeof(buffer));
-                                                strcpy(buffer, "+Ok. Desconexión procesada\n");
+                                                strcpy(buffer, "+Ok. Desconexion procesada\n");
                                                 send(i, buffer, strlen(buffer), 0);
 
                                                 salirCliente(i,&readfds,&numClientes,arrayClientes);
@@ -935,10 +931,16 @@ int main ( )
 												if(i == partida[pos].getSocketP1()){
 													strcpy(mensaje, "+Ok. Turno de partida.\n\n");
 													send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+
+                                                    strcpy(mensaje, "+Ok. Turno del otro jugador.\n\n");
+                                                    send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
 												}
 												else if (i == partida[pos].getSocketP2()) {
 													strcpy(mensaje, "+Ok. Turno de partida.\n\n");
 													send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+
+                                                    strcpy(mensaje, "+Ok. Turno del otro jugador.\n\n");
+                                                    send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 												}
 												else{
 													printf("-ERR. Comando PASO-TURNO inválido: Jugador no reconocido.");
@@ -1060,10 +1062,16 @@ int main ( )
 													if(i == partida[pos].getSocketP1()){
 														strcpy(mensaje, "+Ok. Turno de partida.\n\n");
 		                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+
+                                                        strcpy(mensaje, "+Ok. Turno del otro jugador.\n\n");
+                                                        send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
 													}
 													else if (i == partida[pos].getSocketP2()) {
 														strcpy(mensaje, "+Ok. Turno de partida.\n\n");
 		                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
+
+                                                        strcpy(mensaje, "+Ok. Turno del otro jugador.\n\n");
+                                                        send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
 													}
 													else{
 														printf("-ERR. Comando PASO-TURNO inválido: Jugador no reconocido.");
@@ -1132,7 +1140,7 @@ int main ( )
 
                                                 // Borramos la informacion del cliente que sale
                                                 bzero(buffer, sizeof(buffer));
-                                                strcpy(buffer, "+Ok. Desconexión procesada\n");
+                                                strcpy(buffer, "+Ok. Desconexion procesada\n");
                                                 send(i, buffer, strlen(buffer), 0);
 
                                                 salirCliente(i,&readfds,&numClientes,arrayClientes);
@@ -1148,16 +1156,13 @@ int main ( )
                                             //COMANDO NO RECONOCIDO -- Se le recuerda al jugador qué puede hacer
                                             else{
                                                 bzero(buffer, sizeof(buffer));
-                                                strcpy(buffer, "-ERR. Comando inválido. (Comandos válidos: COLOCAR-FICHA <|valor·valor|>,<extremo>; ROBAR-FICHA; PASO-TURNO). Es tu turno...\n");
+                                                strcpy(buffer, "-ERR. Comando inválido. Comandos válidos:\n\n COLOCAR-FICHA <|valor·valor|>,<extremo>;\n ROBAR-FICHA;\n PASO-TURNO\n\n Es tu turno...\n\n");
                                                 send(i, buffer, strlen(buffer), 0);
                                             }
 
                                         break;
 
                                     }
-
-
-
 
                             }
                             //Si el cliente introdujo ctrl+c

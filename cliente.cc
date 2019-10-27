@@ -90,7 +90,7 @@ int main (int argc, char const *argv[])
             bzero(buffer,sizeof(buffer));
             recv(sd,buffer,sizeof(buffer),0);
 
-            //printf("\n%s\n",buffer);
+            //printf("Buffer: %s", buffer);
 
             if(strcmp(buffer,"-ERR. Demasiados clientes conectados\n") == 0)
                 fin =1;
@@ -98,9 +98,8 @@ int main (int argc, char const *argv[])
             if(strcmp(buffer,"-ERR. Desconexion servidor\n") == 0)
                 fin =1;
 
-            if(strcmp(buffer, "+Ok. Desconexion procesada\n") == 0)
+            if(strstr(buffer, "+Ok. Desconexion procesada\n") != NULL)
             {
-                //printf("\n------------------> Salgo\n");
                 fin =1;
             }
 

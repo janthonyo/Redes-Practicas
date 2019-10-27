@@ -34,7 +34,7 @@ bool checkUser(char buffer[])
 		dataFile >> user;
 		dataFile >> passwd;
 
-		if( strstr(buffer, user) != NULL )
+		if( strcmp(buffer, user) == 0 )
 			isUser = true;
 	}
 

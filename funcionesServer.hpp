@@ -3,24 +3,13 @@
 #include <string>
 #include <fstream>
 
-#include "domino.cc"
+#include "message.hpp"
 
 //------MACROS----------
 #define MSG_SIZE 250
 #define MAX_CLIENTS 30
 #define MAX_GAMES 10
 //----------------------
-
-void sendBoardAndHands(domino& game);
-
-struct cliente
-{
-    int sd;
-    int status;
-    char user[100];
-    char passwd[100];
-    int inGame;	 // Indica la partida en la que esta jugando.
-};
 
 bool checkUser(char buffer[])
 {
@@ -324,84 +313,7 @@ void waitListGame(std::vector <int> &lista_espera, std::vector<domino> &partida,
 		// Vemos quien sale
 		result = partida[pos].startPlayer();
 
-		// Turno del J1 / Espera J2
-        if (result == 1)
-        {
-            //Enviamos que jugador ha sacado.
-            strcpy(mensaje, "+Ok. Jugador 2 (");
-            strcat(mensaje, partida[pos].getUserP2());
-            strcat(mensaje, ") sale y ha colocado ficha.\n\n");
-
-            send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-            send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
-            // Enviamos los turnos
-            bzero(buffer, sizeof(buffer));
-            strcpy(buffer, "+Ok. Turno de partida.\n");
-            send(partida[pos].getSocketP1(), buffer, strlen(buffer), 0);
-
-            bzero(buffer, sizeof(buffer));
-            strcpy(buffer, "+Ok. Turno del otro jugador.\n");
-            send(partida[pos].getSocketP2(), buffer, strlen(buffer), 0);
-
-            // Enviamos el tablero
-            strcpy(mensaje, partida[pos].showBoard().c_str());
-            send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-            send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
-            // Send hands
-            strcpy(mensaje, partida[pos].messageHandP1().c_str());
-            send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-
-            strcpy(mensaje, partida[pos].messageHandP2().c_str());
-            send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
-            // Cambiamos los estados de los jugadores
-            for(int j = 0; j < numClientes; j++)
-            {
-                if (arrayClientes[j].sd == partida[pos].getSocketP1())
-                    arrayClientes[j].status = 4;        // J1 Puede colocar
-
-                else if (arrayClientes[j].sd == partida[pos].getSocketP2())
-                    arrayClientes[j].status = 3;        // J2 espera
-            }
-
-
-        }
-
-        // Turno de J2 / Espera J1
-        else
-        {
-            //Enviamos que jugador ha sacado.
-            strcpy(mensaje, "+Ok. Jugador 1 (");
-            strcat(mensaje, partida[pos].getUserP1());
-            strcat(mensaje, ") sale y ha colocado ficha.\n\n");
-
-            send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-            send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
-
-            // Enviamos los turnos
-            bzero(buffer, sizeof(buffer));
-            strcpy(buffer, "+Ok. Turno del otro jugador.\n");
-            send(partida[pos].getSocketP1(), buffer, strlen(buffer), 0);
-
-            bzero(buffer, sizeof(buffer));
-            strcpy(buffer, "+Ok. Turno de partida.\n");
-            send(partida[pos].getSocketP2(), buffer, strlen(buffer), 0);
-
-            sendBoardAndHands(partida[pos]);
-
-            // Cambiamos los estados de los jugadores
-            for(int j = 0; j < numClientes; j++)
-            {
-                if (arrayClientes[j].sd == partida[pos].getSocketP1())
-                    arrayClientes[j].status = 3;    // J1 Espera
-
-                else if (arrayClientes[j].sd == partida[pos].getSocketP2())
-                    arrayClientes[j].status = 4;    // J2 Puede colocar
-            }
-        }
+		startGameMessage(partida[pos], result, &numClientes, arrayClientes);
 	}
 
 	// Si la lista esta vacia o ya se han hecho las operaciones, no se hace nada mas
@@ -447,128 +359,6 @@ bool checkPiece(int i, char* buffer, ficha &auxFicha, char* &extremo)
     auxFicha.right = valorFicha[1];
 
     return true;
-}
-
-void sendBoth(domino& game, char mensaje[MSG_SIZE])
-{
-    send(game.getSocketP1(), mensaje, strlen(mensaje), 0);
-    send(game.getSocketP2(), mensaje, strlen(mensaje), 0);
-}
-
-void sendBoardAndHands(domino& game)
-{
-    char mensaje[MSG_SIZE];
-
-    // Enviamos el tablero
-    strcpy(mensaje, game.showBoard().c_str());
-    sendBoth(game, mensaje);
-
-    // Send hands
-    strcpy(mensaje, game.messageHandP1().c_str());
-    send(game.getSocketP1(), mensaje, strlen(mensaje), 0);
-
-    strcpy(mensaje, game.messageHandP2().c_str());
-    send(game.getSocketP2(), mensaje, strlen(mensaje), 0);
-}
-
-void nextTurnMessage(int *i, domino& game)
-{
-    char mensaje[MSG_SIZE];
-
-    //Se informa de paso de turno
-    if(*i == game.getSocketP1()){
-        strcpy(mensaje, "+Ok. Turno de partida.\n\n");
-        send(game.getSocketP2(), mensaje, strlen(mensaje), 0);
-
-        strcpy(mensaje, "+Ok. Turno del otro jugador.\n\n");
-        send(game.getSocketP1(), mensaje, strlen(mensaje), 0);
-    }
-    else if (*i == game.getSocketP2()) {
-        strcpy(mensaje, "+Ok. Turno de partida.\n\n");
-        send(game.getSocketP1(), mensaje, strlen(mensaje), 0);
-
-        strcpy(mensaje, "+Ok. Turno del otro jugador.\n\n");
-        send(game.getSocketP2(), mensaje, strlen(mensaje), 0);
-    }
-}
-
-void startGameMessage(domino& game, int result, int *numClientes, std::vector<cliente> &arrayClientes)
-{
-    //Var auxiliares
-    char mensaje[MSG_SIZE];
-    char buffer[MSG_SIZE];
-
-    //Enviamos los jugadores
-    strcpy(mensaje, "\nJUGADORES:\n");
-    strcat(mensaje, "\tJugador1(");
-    strcat(mensaje, game.getUserP1());
-    strcat(mensaje, ")\n");
-    strcat(mensaje, "\tJugador2(");
-    strcat(mensaje, game.getUserP2());
-    strcat(mensaje, ")\n\n");
-    sendBoth(game, mensaje);
-
-    // Turno del J1 / Espera J2
-    if (result == 1) {
-        //Enviamos que jugador ha sacado
-        strcpy(mensaje, "+Ok. Jugador2 sale y ha colocado ficha.\n\n");
-        sendBoth(game, mensaje);
-
-        // Enviamos los turnos
-        bzero(buffer, sizeof(buffer));
-        strcpy(buffer, "+Ok. Turno de partida.\n");
-        send(game.getSocketP1(), buffer, strlen(buffer), 0);
-
-        bzero(buffer, sizeof(buffer));
-        strcpy(buffer, "+Ok. Turno del otro jugador.\n");
-        send(game.getSocketP2(), buffer, strlen(buffer), 0);
-
-        // Cambiamos los estados de los jugadores
-        for(int j = 0; j < *numClientes; j++)
-        {
-            if (arrayClientes[j].sd == game.getSocketP1())
-                arrayClientes[j].status = 4;        // J1 Puede colocar
-
-            else if (arrayClientes[j].sd == game.getSocketP2())
-                arrayClientes[j].status = 3;        // J2 espera
-        }
-    }
-    // Turno de J2 / Espera J1
-    else {
-        //Enviamos que jugador ha sacado
-        strcpy(mensaje, "+Ok. Jugador1 sale y ha colocado ficha.\n\n");
-        sendBoth(game, mensaje);
-
-        // Enviamos los turnos
-        bzero(buffer, sizeof(buffer));
-        strcpy(buffer, "+Ok. Turno del otro jugador.\n");
-        send(game.getSocketP1(), buffer, strlen(buffer), 0);
-
-        bzero(buffer, sizeof(buffer));
-        strcpy(buffer, "+Ok. Turno de partida.\n");
-        send(game.getSocketP2(), buffer, strlen(buffer), 0);
-
-        // Cambiamos los estados de los jugadores
-        for(int j = 0; j < *numClientes; j++)
-        {
-            if (arrayClientes[j].sd == game.getSocketP1())
-                arrayClientes[j].status = 3;    // J1 Espera
-
-            else if (arrayClientes[j].sd == game.getSocketP2())
-                arrayClientes[j].status = 4;    // J2 Puede colocar
-        }
-    }
-
-    sendBoardAndHands(game);
-}
-
-void cantPutPieceMessage(int i)
-{
-    char buffer[MSG_SIZE];
-
-    bzero(buffer, sizeof(buffer));
-    strcpy(buffer, "-ERR. La ficha no puede ser colocada.\n");
-    send(i, buffer, strlen(buffer), 0);
 }
 
 bool puttingpieceP1(domino& game, ficha &auxFicha, char* extremo)

@@ -7,6 +7,7 @@
 #include <ctime>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <string.h>
 
 #define MSG_SIZE 250
 
@@ -21,6 +22,16 @@ struct jugador
 	char user[100];
 	int socket;
 	std::vector <ficha> hand;
+};
+
+
+struct cliente
+{
+    int sd;
+    int status;
+    char user[100];
+    char passwd[100];
+    int inGame;	 // Indica la partida en la que esta jugando.
 };
 
 class domino

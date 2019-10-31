@@ -13,6 +13,7 @@
 
 #include "funcionesServer.hpp"
 
+
 /*
  * El servidor ofrece el servicio de un chat
  */
@@ -497,7 +498,7 @@ int main ( )
 
                                                             result = partida[pos].startPlayer();
 
-															startGameMessage(partida[pos], result, &numClientes, arrayClientes);
+                                                            startGameMessage(partida[pos], result, &numClientes, arrayClientes);
                                                         }
                                                     }
                                                 }
@@ -571,7 +572,7 @@ int main ( )
                                                 // Mandamos el mensaje de partida anulada a los jugadores
                                                 bzero(buffer, sizeof(buffer));
                                                 strcpy(buffer, "+Ok. La partida ha sido anulada.\n\n");
-                                                sendBoth(partida[pos], mensaje);
+                                                sendBoth(partida[pos], buffer);
 
                                                 // Comprobamos cual es el jugador que NO sale
                                                 if(arrayClientes[clienteX].sd == partida[pos].getSocketP1())
@@ -751,6 +752,7 @@ int main ( )
 												sendBoth(partida[pos], mensaje);
 
 												sendBoardAndHands(partida[pos]);
+
                                             }
 
 
@@ -798,8 +800,8 @@ int main ( )
 													}
 												}
 												else{
-													//Se pasa turno
-	                                                nextTurnMessage(&i, partida[pos]);
+	                                                //Se informa de paso de turno
+													nextTurnMessage(&i, partida[pos]);
 
 	                                                sendBoardAndHands(partida[pos]);
 

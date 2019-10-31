@@ -895,29 +895,3 @@ int main ( )
 	return 0;
 
 }
-
-void salirCliente(int socket, fd_set * readfds, int * numClientes, std::vector<cliente> &arrayClientes){
-
-    char buffer[250];
-    int j;
-
-    close(socket);
-    FD_CLR(socket,readfds);
-
-    //Re-estructurar el array de clientes
-    for (j = 0; j < (*numClientes) - 1; j++)
-        if (arrayClientes[j].sd == socket)
-            break;
-    for (; j < (*numClientes) - 1; j++)
-        (arrayClientes[j] = arrayClientes[j+1]);
-
-    (*numClientes)--;
-}
-
-
-void manejador (int signum){
-    printf("\n+Ok. Se ha recibido la señal sigint\n");
-    signal(SIGINT,manejador);
-
-    //Implementar lo que se desee realizar cuando ocurra la excepción de ctrl+c en el servidor
-}

@@ -408,3 +408,72 @@ void waitListGame(std::vector <int> &lista_espera, std::vector<domino> &partida,
 
 	// Si la lista esta vacia o ya se han hecho las operaciones, no se hace nada mas
 }
+
+bool checkPiece(int i, char* buffer, ficha &auxFicha, char* &extremo)
+{
+    //Variables auxiliares
+    int contNum = 0;
+    char valorFicha[2];
+    char* aux;
+
+    //Sacamos "COLOCAR-FICHA" del buffer
+    aux = strtok(buffer, " ,");
+
+    // Sacamos la ficha y la posicion donde colocarla (izquierda/derecha)
+    aux = strtok(NULL, " ,");   //La ficha entra en aux
+    contNum = 0;                //Evaluamos si es un comando de colocar ficha válido
+
+    //Hallamos los valores de la ficha
+    for (int l = 0; l < strlen(aux); l++) {
+        if (isdigit(aux[l])) {
+            if(contNum < 2){
+                // "- '0'" sirve para pasar de char a int el contenido de aux
+                valorFicha[contNum] = (aux[l]) - '0';
+            }
+            contNum++;
+        }
+    }
+    if(contNum != 2){   //Si el comando no lleva exactamente 2 valores numéricos
+        return false;
+    }
+
+    extremo = strtok(NULL, " ,");   //El extremo entra en aux
+
+    //Si el valor del extremo no es válido
+    if ((strcmp( extremo, "derecha\n") != 0 ) && (strcmp( extremo, "izquierda\n") != 0 ))
+    {
+        return false;
+    }
+
+    auxFicha.left = valorFicha[0];
+    auxFicha.right = valorFicha[1];
+
+    return true;
+}
+
+bool puttingpieceP1(domino& game, ficha &auxFicha, char* extremo)
+{
+    if (strcmp( extremo, "izquierda\n") == 0)
+    {
+        //Si la ficha se puede coloca, se coloca y se le quita de la mano
+        if (game.putInBoardLeft(auxFicha)) {
+            game.quitPieceJ1(auxFicha);
+        }
+        else{
+            return false;
+        }
+    }
+
+    else if (strcmp( extremo, "derecha\n") == 0)
+    {
+        //Si la ficha se puede coloca, se coloca y se le quita de la mano
+        if (game.putInBoardRight(auxFicha)) {
+            game.quitPieceJ1(auxFicha);
+        }
+        else{
+            return false;
+        }
+    }
+
+    return true;
+}

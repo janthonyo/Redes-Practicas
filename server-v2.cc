@@ -68,7 +68,7 @@ int main ( )
     int i,j,k;
 	int recibidos;
     char identificador[MSG_SIZE];
-    int contNum = 0, contCoincidencias = 0;
+    int contCoincidencias = 0;
 
     // Cadenas auxiliares
     char *aux;
@@ -79,7 +79,6 @@ int main ( )
 
     int on, ret;
 
-    char valorFicha[2];
     char *extremo;
     ficha auxFicha;
 
@@ -744,47 +743,15 @@ int main ( )
                                              //COLOCAR FICHA
                                             if(strstr(buffer,"COLOCAR-FICHA ") != NULL)
                                             {
-
-                                                //Sacamos "COLOCAR-FICHA" del buffer
-                                                aux = strtok(buffer, " ,");
-
-                                                // Sacamos la ficha y la posicion donde colocarla (izquierda/derecha)
-                                                aux = strtok(NULL, " ,");   //La ficha entra en aux
-                                                contNum = 0;                //Evaluamos si es un comando de colocar ficha válido
-
-                                                //Hallamos los valores de la ficha
-                                                for (int l = 0; l < strlen(aux); l++) {
-                                                    if (isdigit(aux[l])) {
-                                                        if(contNum < 2){
-                                                            // "- '0'" sirve para pasar de char a int el contenido de aux
-                                                            valorFicha[contNum] = (aux[l]) - '0';
-                                                        }
-														contNum++;
-                                                    }
-                                                }
-												if(contNum != 2){   //Si el comando no lleva exactamente 2 valores numéricos
+												//Comprobamos si la ficha es válida
+												if (!checkPiece(i, buffer, auxFicha, extremo)){
 													bzero(buffer, sizeof(buffer));
-													strcpy(buffer, "-ERR. La ficha no puede ser colocada.\n");
-													send(i, buffer, strlen(buffer), 0);
-													break;
+											        strcpy(buffer, "-ERR. La ficha no puede ser colocada.\n");
+											        send(i, buffer, strlen(buffer), 0);
+											        break;
 												}
 
-                                                extremo = strtok(NULL, " ,");   //El extremo entra en aux
-
-                                                //Si el valor del extremo no es válido
-                                                if ((strcmp( extremo, "derecha\n") != 0 ) && (strcmp( extremo, "izquierda\n") != 0 ))
-                                                {
-                                                    bzero(buffer, sizeof(buffer));
-                                                    strcpy(buffer, "-ERR. La ficha no puede ser colocada.\n");
-                                                    send(i, buffer, strlen(buffer), 0);
-                                                    break;
-                                                }
-
-
-                                                auxFicha.left = valorFicha[0];
-                                                auxFicha.right = valorFicha[1];
-
-												// Obtenemos la partida en la que jugaba el cliente
+                                                // Obtenemos la partida en la que jugaba el cliente
 												pos = arrayClientes[clienteX].inGame;
 
                                                 //Se coloca la ficha y se borra de la mano del jugador
@@ -792,32 +759,11 @@ int main ( )
                                                 if(i == partida[pos].getSocketP1()){    //Se comprueba si P1, ha jugado la ficha
                                                     if (partida[pos].hasFicha(auxFicha, partida[pos].getHand1()))    //Se comprueba que tenga dicha ficha
                                                     {
-														if (strcmp( extremo, "izquierda\n") == 0)
-														{
-															//Si la ficha se puede coloca, se coloca y se le quita de la mano
-															if (partida[pos].putInBoardLeft(auxFicha)) {
-																partida[pos].quitPieceJ1(auxFicha);
-															}
-															else{
-																bzero(buffer, sizeof(buffer));
-																strcpy(buffer, "-ERR. La ficha no puede ser colocada.\n");
-																send(i, buffer, strlen(buffer), 0);
-																break;
-															}
-														}
-
-														else if (strcmp( extremo, "derecha\n") == 0)
-														{
-															//Si la ficha se puede coloca, se coloca y se le quita de la mano
-															if (partida[pos].putInBoardRight(auxFicha)) {
-																partida[pos].quitPieceJ1(auxFicha);
-															}
-															else{
-																bzero(buffer, sizeof(buffer));
-																strcpy(buffer, "-ERR. La ficha no puede ser colocada.\n");
-																send(i, buffer, strlen(buffer), 0);
-																break;
-															}
+														if(!puttingpieceP1(partida[pos], auxFicha, extremo)){
+															bzero(buffer, sizeof(buffer));
+	                                                        strcpy(buffer, "-ERR. La ficha no puede ser colocada.\n");
+	                                                        send(i, buffer, strlen(buffer), 0);
+	                                                        break;
 														}
                                                     }
 
@@ -831,32 +777,11 @@ int main ( )
                                                 else if(i == partida[pos].getSocketP2()){   //O si ha sido P2
                                                     if (partida[pos].hasFicha(auxFicha, partida[pos].getHand2()))    //Se comprueba que tenga dicha ficha
                                                     {
-														if (strcmp( extremo, "izquierda\n") == 0)
-														{
-															//Si la ficha se puede coloca, se coloca y se le quita de la mano
-															if (partida[pos].putInBoardLeft(auxFicha)) {
-																partida[pos].quitPieceJ2(auxFicha);
-															}
-															else{
-																bzero(buffer, sizeof(buffer));
-																strcpy(buffer, "-ERR. La ficha no puede ser colocada.\n");
-																send(i, buffer, strlen(buffer), 0);
-																break;
-															}
-														}
-
-														else if (strcmp( extremo, "derecha\n") == 0)
-														{
-															//Si la ficha se puede coloca, se coloca y se le quita de la mano
-															if (partida[pos].putInBoardRight(auxFicha)) {
-																partida[pos].quitPieceJ2(auxFicha);
-															}
-															else{
-																bzero(buffer, sizeof(buffer));
-																strcpy(buffer, "-ERR. La ficha no puede ser colocada.\n");
-																send(i, buffer, strlen(buffer), 0);
-																break;
-															}
+														if(!puttingpieceP2(partida[pos], auxFicha, extremo)){
+															bzero(buffer, sizeof(buffer));
+	                                                        strcpy(buffer, "-ERR. La ficha no puede ser colocada.\n");
+	                                                        send(i, buffer, strlen(buffer), 0);
+	                                                        break;
 														}
                                                     }
                                                     else{

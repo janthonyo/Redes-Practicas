@@ -13,12 +13,6 @@
 
 #include "funcionesServer.hpp"
 
-
-#define MSG_SIZE 250
-#define MAX_CLIENTS 30
-#define MAX_GAMES 10
-
-
 /*
  * El servidor ofrece el servicio de un chat
  */
@@ -503,110 +497,7 @@ int main ( )
 
                                                             result = partida[pos].startPlayer();
 
-                                                            // Turno del J1 / Espera J2
-                                                            if (result == 1)
-                                                            {
-																//Enviamos los jugadores
-																strcpy(mensaje, "\nJUGADORES:\n");
-																strcat(mensaje, "\tJugador1(");
-																strcat(mensaje, partida[pos].getUserP1());
-                                                                strcat(mensaje, ")\n");
-																strcat(mensaje, "\tJugador2(");
-																strcat(mensaje, partida[pos].getUserP2());
-                                                                strcat(mensaje, ")\n\n");
-																send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-                                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
-																//Enviamos que jugador ha sacado.
-                                                                strcpy(mensaje, "+Ok. Jugador2 sale y ha colocado ficha.\n\n");
-                                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-                                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
-                                                                // Enviamos los turnos
-                                                                bzero(buffer, sizeof(buffer));
-                                                                strcpy(buffer, "+Ok. Turno de partida.\n");
-                                                                send(partida[pos].getSocketP1(), buffer, strlen(buffer), 0);
-
-                                                                bzero(buffer, sizeof(buffer));
-                                                                strcpy(buffer, "+Ok. Turno del otro jugador.\n");
-                                                                send(partida[pos].getSocketP2(), buffer, strlen(buffer), 0);
-
-                                                                // Enviamos el tablero
-                                                                strcpy(mensaje, partida[pos].showBoard().c_str());
-                                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-                                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
-                                                                // Send hands
-                                                                strcpy(mensaje, partida[pos].messageHandP1().c_str());
-                                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-
-                                                                strcpy(mensaje, partida[pos].messageHandP2().c_str());
-                                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
-                                                                // Cambiamos los estados de los jugadores
-                                                                for(j = 0; j < numClientes; j++)
-                                                                {
-                                                                    if (arrayClientes[j].sd == partida[pos].getSocketP1())
-                                                                        arrayClientes[j].status = 4;        // J1 Puede colocar
-
-                                                                    else if (arrayClientes[j].sd == partida[pos].getSocketP2())
-                                                                        arrayClientes[j].status = 3;        // J2 espera
-                                                                }
-
-
-                                                            }
-
-                                                            // Turno de J2 / Espera J1
-                                                            else
-                                                            {
-																//Enviamos los jugadores
-																strcpy(mensaje, "\nJUGADORES:\n");
-																strcat(mensaje, "\tJugador1(");
-																strcat(mensaje, partida[pos].getUserP1());
-                                                                strcat(mensaje, ")\n");
-																strcat(mensaje, "\tJugador2(");
-																strcat(mensaje, partida[pos].getUserP2());
-                                                                strcat(mensaje, ")\n\n");
-																send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-                                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
-                                                                //Enviamos que jugador ha sacado.
-                                                                strcpy(mensaje, "+Ok. Jugador1 sale y ha colocado ficha.\n\n");
-                                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-                                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
-
-                                                                // Enviamos los turnos
-                                                                bzero(buffer, sizeof(buffer));
-                                                                strcpy(buffer, "+Ok. Turno del otro jugador.\n");
-                                                                send(partida[pos].getSocketP1(), buffer, strlen(buffer), 0);
-
-                                                                bzero(buffer, sizeof(buffer));
-                                                                strcpy(buffer, "+Ok. Turno de partida.\n");
-                                                                send(partida[pos].getSocketP2(), buffer, strlen(buffer), 0);
-
-                                                                // Enviamos el tablero
-                                                                strcpy(mensaje, partida[pos].showBoard().c_str());
-                                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-                                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
-                                                                // Send hands
-                                                                strcpy(mensaje, partida[pos].messageHandP1().c_str());
-                                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-
-                                                                strcpy(mensaje, partida[pos].messageHandP2().c_str());
-                                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
-                                                                // Cambiamos los estados de los jugadores
-                                                                for(j = 0; j < numClientes; j++)
-                                                                {
-                                                                    if (arrayClientes[j].sd == partida[pos].getSocketP1())
-                                                                        arrayClientes[j].status = 3;    // J1 Espera
-
-                                                                    else if (arrayClientes[j].sd == partida[pos].getSocketP2())
-                                                                        arrayClientes[j].status = 4;    // J2 Puede colocar
-                                                                }
-                                                            }
+															startGameMessage(partida[pos], result, &numClientes, arrayClientes);
                                                         }
                                                     }
                                                 }
@@ -680,8 +571,7 @@ int main ( )
                                                 // Mandamos el mensaje de partida anulada a los jugadores
                                                 bzero(buffer, sizeof(buffer));
                                                 strcpy(buffer, "+Ok. La partida ha sido anulada.\n\n");
-                                                send(partida[pos].getSocketP1(), buffer, strlen(buffer), 0);
-                                                send(partida[pos].getSocketP2(), buffer, strlen(buffer), 0);
+                                                sendBoth(partida[pos], mensaje);
 
                                                 // Comprobamos cual es el jugador que NO sale
                                                 if(arrayClientes[clienteX].sd == partida[pos].getSocketP1())
@@ -745,9 +635,7 @@ int main ( )
                                             {
 												//Comprobamos si la ficha es válida
 												if (!checkPiece(i, buffer, auxFicha, extremo)){
-													bzero(buffer, sizeof(buffer));
-											        strcpy(buffer, "-ERR. La ficha no puede ser colocada.\n");
-											        send(i, buffer, strlen(buffer), 0);
+													cantPutPieceMessage(i);
 											        break;
 												}
 
@@ -760,17 +648,13 @@ int main ( )
                                                     if (partida[pos].hasFicha(auxFicha, partida[pos].getHand1()))    //Se comprueba que tenga dicha ficha
                                                     {
 														if(!puttingpieceP1(partida[pos], auxFicha, extremo)){
-															bzero(buffer, sizeof(buffer));
-	                                                        strcpy(buffer, "-ERR. La ficha no puede ser colocada.\n");
-	                                                        send(i, buffer, strlen(buffer), 0);
+															cantPutPieceMessage(i);
 	                                                        break;
 														}
                                                     }
 
                                                     else{
-                                                        bzero(buffer, sizeof(buffer));
-                                                        strcpy(buffer, "-ERR. La ficha no puede ser colocada.\n");
-                                                        send(i, buffer, strlen(buffer), 0);
+                                                        cantPutPieceMessage(i);
                                                         break;
                                                     }
                                                 }
@@ -778,23 +662,17 @@ int main ( )
                                                     if (partida[pos].hasFicha(auxFicha, partida[pos].getHand2()))    //Se comprueba que tenga dicha ficha
                                                     {
 														if(!puttingpieceP2(partida[pos], auxFicha, extremo)){
-															bzero(buffer, sizeof(buffer));
-	                                                        strcpy(buffer, "-ERR. La ficha no puede ser colocada.\n");
-	                                                        send(i, buffer, strlen(buffer), 0);
+															cantPutPieceMessage(i);
 	                                                        break;
 														}
                                                     }
                                                     else{
-                                                        bzero(buffer, sizeof(buffer));
-                                                        strcpy(buffer, "-ERR. La ficha no puede ser colocada.\n");
-                                                        send(i, buffer, strlen(buffer), 0);
+                                                        cantPutPieceMessage(i);
                                                         break;
                                                     }
                                                 }
                                                 else{
-                                                    bzero(buffer, sizeof(buffer));
-                                                    strcpy(buffer, "-ERR. La ficha no puede ser colocada.\n");
-                                                    send(i, buffer, strlen(buffer), 0);
+                                                    cantPutPieceMessage(i);
                                                     break;
                                                 }
 
@@ -802,8 +680,7 @@ int main ( )
 												if(i == partida[pos].getSocketP1()){
 													if(partida[pos].isHand1Empty()){
 														strcpy(mensaje, "+Ok. Partida Finalizada. Jugador1 ha ganado la partida.\n\n");
-														send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-														send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+														sendBoth(partida[pos], mensaje);
 
                                                         //Gestionamos los estados de los jugadores
                                                         managePostGame(partida, pos, arrayClientes, numClientes, &numPartidas);
@@ -817,8 +694,7 @@ int main ( )
 												else{
 													if(partida[pos].isHand2Empty()){
 														strcpy(mensaje, "+Ok. Partida Finalizada. Jugador2 ha ganado la partida.\n\n");
-														send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-														send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+														sendBoth(partida[pos], mensaje);
 
                                                         //Gestionamos los estados de los jugadores
                                                         managePostGame(partida, pos, arrayClientes, numClientes, &numPartidas);
@@ -830,33 +706,9 @@ int main ( )
 													}
 												}
 
-												//Se informa de paso de turno
-												if(i == partida[pos].getSocketP1()){
-													strcpy(mensaje, "+Ok. Turno de partida.\n\n");
-													send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+												nextTurnMessage(&i, partida[pos]);
 
-                                                    strcpy(mensaje, "+Ok. Turno del otro jugador.\n\n");
-                                                    send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-												}
-												else if (i == partida[pos].getSocketP2()) {
-													strcpy(mensaje, "+Ok. Turno de partida.\n\n");
-													send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-
-                                                    strcpy(mensaje, "+Ok. Turno del otro jugador.\n\n");
-                                                    send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-												}
-
-                                                // Enviamos el tablero
-                                                strcpy(mensaje, partida[pos].showBoard().c_str());
-                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
-                                                // Send hands
-                                                strcpy(mensaje, partida[pos].messageHandP1().c_str());
-                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-
-                                                strcpy(mensaje, partida[pos].messageHandP2().c_str());
-                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+                                                sendBoardAndHands(partida[pos]);
 
                                                 //Cambiamos los estados, correspondientes al cambio de turno
                                                 alternatePlayerStatus(partida[pos], arrayClientes);
@@ -896,21 +748,9 @@ int main ( )
 
 												//Se informa del estado de la partida
 												strcpy(mensaje, "+Ok. Ficha robada. Continúa el mismo jugador.\n\n");
-												send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-												send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+												sendBoth(partida[pos], mensaje);
 
-												// Enviamos el tablero
-												strcpy(mensaje, partida[pos].showBoard().c_str());
-												send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-												send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
-												// Send hands
-												strcpy(mensaje, partida[pos].messageHandP1().c_str());
-												send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-
-												strcpy(mensaje, partida[pos].messageHandP2().c_str());
-												send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
+												sendBoardAndHands(partida[pos]);
                                             }
 
 
@@ -958,35 +798,10 @@ int main ( )
 													}
 												}
 												else{
-	                                                //Se informa de paso de turno
-													if(i == partida[pos].getSocketP1()){
-														strcpy(mensaje, "+Ok. Turno de partida.\n\n");
-		                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
+													//Se pasa turno
+	                                                nextTurnMessage(&i, partida[pos]);
 
-                                                        strcpy(mensaje, "+Ok. Turno del otro jugador.\n\n");
-                                                        send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-													}
-													else if (i == partida[pos].getSocketP2()) {
-														strcpy(mensaje, "+Ok. Turno de partida.\n\n");
-		                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-
-                                                        strcpy(mensaje, "+Ok. Turno del otro jugador.\n\n");
-                                                        send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-													}
-
-	                                                // Enviamos el tablero
-	                                                strcpy(mensaje, partida[pos].showBoard().c_str());
-	                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-	                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
-	                                                // Send hands
-	                                                strcpy(mensaje, partida[pos].messageHandP1().c_str());
-	                                                send(partida[pos].getSocketP1(), mensaje, strlen(mensaje), 0);
-
-	                                                strcpy(mensaje, partida[pos].messageHandP2().c_str());
-	                                                send(partida[pos].getSocketP2(), mensaje, strlen(mensaje), 0);
-
-
+	                                                sendBoardAndHands(partida[pos]);
 
 	                                                //Cambiamos los estados, correspondientes al cambio de turno
 	                                                alternatePlayerStatus(partida[pos], arrayClientes);
@@ -1002,8 +817,7 @@ int main ( )
                                                 // Mandamos el mensaje de partida anulada a los jugadores
                                                 bzero(buffer, sizeof(buffer));
                                                 strcpy(buffer, "+Ok. La partida ha sido anulada.\n\n");
-                                                send(partida[pos].getSocketP1(), buffer, strlen(buffer), 0);
-                                                send(partida[pos].getSocketP2(), buffer, strlen(buffer), 0);
+                                                sendBoth(partida[pos], mensaje);
 
                                                 // Comprobamos cual es el jugador que NO sale
                                                 if(arrayClientes[clienteX].sd == partida[pos].getSocketP1())
